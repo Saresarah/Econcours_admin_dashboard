@@ -1,6 +1,6 @@
 <div class="modal fade" id="ajouter_examen" tabindex="-1">
 
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg">
 
         <div class="modal-content">
 
@@ -218,7 +218,7 @@
 
 <div class="modal fade" id="modifier_examen" tabindex="-1">
 
-    <div class="modal-dialog modal-xl">
+    <div class="modal-dialog modal-lg">
 
         <div class="modal-content">
 
