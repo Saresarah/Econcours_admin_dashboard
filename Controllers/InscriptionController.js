@@ -234,134 +234,229 @@ export default class InscriptionController {
 
             searchDelay: 500,
 
+            // ajax: async function (data, callback) {
+
+            //     try {
+
+            //         const params = {
+
+            //             draw: data.draw,
+
+            //             start: data.start,
+
+            //             length: data.length,
+
+            //             search:
+            //                 data.search?.value || "",
+
+            //             orderColumn:
+            //                 data.order?.[0]?.column ?? 0,
+
+            //             orderDir:
+            //                 data.order?.[0]?.dir ?? "asc"
+            //         };
+
+            //         console.log(
+            //             "PARAMÈTRES DATATABLES INSCRIPTIONS :",
+            //             params
+            //         );
+
+            //         const result =
+            //             await InscriptionController.getAll(
+            //                 params
+            //             );
+
+            //         console.log(
+            //             "RÉSULTAT DATATABLES INSCRIPTIONS :",
+            //             result
+            //         );
+
+            //         const inscriptions =
+            //             Array.isArray(result?.data)
+            //                 ? result.data
+            //                 : Object.values(
+            //                     result?.data || {}
+            //                 );
+
+            //         const rows =
+            //             inscriptions.map(
+            //                 (item, index) => {
+
+            //                     const candidat =
+            //                         item.candidat || {};
+
+            //                     const listeInscriptions =
+            //                         item.inscriptions || [];
+
+            //                     const preview =
+            //                         listeInscriptions
+            //                             .slice(0, 2)
+            //                             .map(i => `
+            //                             <div>
+            //                                 <b>
+            //                                     ${i.concours?.nom || "-"}
+            //                                 </b>
+            //                             </div>
+            //                         `)
+            //                             .join("");
+
+            //                     const autres =
+            //                         listeInscriptions.length > 2
+            //                             ? `
+            //                             <span class="badge badge-info">
+            //                                 +${listeInscriptions.length - 2} autres
+            //                             </span>
+            //                         `
+            //                             : "";
+
+            //                     return [
+
+            //                         params.start + index + 1,
+
+            //                         `
+            //                         ${candidat.nom || ""}
+            //                         ${candidat.prenom || ""}
+            //                     `,
+
+            //                         `
+            //                         ${preview}
+            //                         ${autres}
+            //                     `,
+
+            //                         `
+            //                         <button
+            //                             class="btn btn-info btn-sm btn-detail-candidat"
+            //                             data-id="${candidat.id_candidat}">
+            //                             <i class="fa fa-eye"></i>
+            //                         </button>
+            //                     `
+            //                     ];
+            //                 }
+            //             );
+
+            //         callback({
+
+            //             draw: result?.draw ?? data.draw,
+
+            //             recordsTotal:
+            //                 result?.recordsTotal ?? 0,
+
+            //             recordsFiltered:
+            //                 result?.recordsFiltered ?? 0,
+
+            //             data: rows
+            //         });
+
+            //     } catch (error) {
+
+            //         console.error(
+            //             "ERREUR DATATABLE INSCRIPTIONS :",
+            //             error
+            //         );
+
+            //         callback({
+
+            //             draw: data.draw,
+
+            //             recordsTotal: 0,
+
+            //             recordsFiltered: 0,
+
+            //             data: []
+            //         });
+            //     }
+            // },
+
             ajax: async function (data, callback) {
+
+                console.log("1️⃣ DATATABLE → REQUÊTE INSCRIPTIONS", data);
 
                 try {
 
                     const params = {
-
                         draw: data.draw,
-
                         start: data.start,
-
                         length: data.length,
-
-                        search:
-                            data.search?.value || "",
-
-                        orderColumn:
-                            data.order?.[0]?.column ?? 0,
-
-                        orderDir:
-                            data.order?.[0]?.dir ?? "asc"
+                        search: data.search?.value || "",
+                        orderColumn: data.order?.[0]?.column ?? 0,
+                        orderDir: data.order?.[0]?.dir ?? "asc"
                     };
 
-                    console.log(
-                        "PARAMÈTRES DATATABLES INSCRIPTIONS :",
-                        params
-                    );
+                    console.log("2️⃣ PARAMÈTRES ENVOYÉS :", params);
 
                     const result =
-                        await InscriptionController.getAll(
-                            params
-                        );
+                        await InscriptionController.getAll(params);
 
-                    console.log(
-                        "RÉSULTAT DATATABLES INSCRIPTIONS :",
-                        result
-                    );
+                    console.log("3️⃣ RÉPONSE CONTROLLER :", result);
 
                     const inscriptions =
                         Array.isArray(result?.data)
                             ? result.data
-                            : Object.values(
-                                result?.data || {}
-                            );
+                            : Object.values(result?.data || {});
 
-                    const rows =
-                        inscriptions.map(
-                            (item, index) => {
+                    console.log("4️⃣ INSCRIPTIONS :", inscriptions);
 
-                                const candidat =
-                                    item.candidat || {};
+                    const rows = inscriptions.map((item, index) => {
 
-                                const listeInscriptions =
-                                    item.inscriptions || [];
+                        const candidat = item.candidat || {};
+                        const listeInscriptions = item.inscriptions || [];
 
-                                const preview =
-                                    listeInscriptions
-                                        .slice(0, 2)
-                                        .map(i => `
-                                        <div>
-                                            <b>
-                                                ${i.concours?.nom || "-"}
-                                            </b>
-                                        </div>
-                                    `)
-                                        .join("");
+                        const preview =
+                            listeInscriptions
+                                .slice(0, 2)
+                                .map(i => `
+                        <div>
+                            <b>${i.concours?.nom || "-"}</b>
+                        </div>
+                    `)
+                                .join("");
 
-                                const autres =
-                                    listeInscriptions.length > 2
-                                        ? `
-                                        <span class="badge badge-info">
-                                            +${listeInscriptions.length - 2} autres
-                                        </span>
-                                    `
-                                        : "";
+                        const autres =
+                            listeInscriptions.length > 2
+                                ? `
+                        <span class="badge badge-info">
+                            +${listeInscriptions.length - 2} autres
+                        </span>
+                    `
+                                : "";
 
-                                return [
+                        return [
+                            params.start + index + 1,
 
-                                    params.start + index + 1,
+                            `${candidat.nom || ""} ${candidat.prenom || ""}`,
 
-                                    `
-                                    ${candidat.nom || ""}
-                                    ${candidat.prenom || ""}
-                                `,
+                            `${preview}${autres}`,
 
-                                    `
-                                    ${preview}
-                                    ${autres}
-                                `,
+                            `<button
+                    class="btn btn-info btn-sm btn-detail-candidat"
+                    data-id="${candidat.id_candidat}">
+                    <i class="fa fa-eye"></i>
+                </button>`
+                        ];
+                    });
 
-                                    `
-                                    <button
-                                        class="btn btn-info btn-sm btn-detail-candidat"
-                                        data-id="${candidat.id_candidat}">
-                                        <i class="fa fa-eye"></i>
-                                    </button>
-                                `
-                                ];
-                            }
-                        );
+                    console.log("5️⃣ LIGNES DATATABLE :", rows);
 
                     callback({
-
                         draw: result?.draw ?? data.draw,
-
-                        recordsTotal:
-                            result?.recordsTotal ?? 0,
-
-                        recordsFiltered:
-                            result?.recordsFiltered ?? 0,
-
+                        recordsTotal: result?.recordsTotal ?? 0,
+                        recordsFiltered: result?.recordsFiltered ?? 0,
                         data: rows
                     });
+
+                    console.log("6️⃣ CALLBACK DATATABLE APPELÉ");
 
                 } catch (error) {
 
                     console.error(
-                        "ERREUR DATATABLE INSCRIPTIONS :",
+                        "❌ ERREUR DATATABLE INSCRIPTIONS :",
                         error
                     );
 
                     callback({
-
                         draw: data.draw,
-
                         recordsTotal: 0,
-
                         recordsFiltered: 0,
-
                         data: []
                     });
                 }

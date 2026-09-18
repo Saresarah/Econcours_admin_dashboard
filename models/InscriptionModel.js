@@ -24,39 +24,83 @@ export default class InscriptionModel {
         };
     }
 
+    // static async getAllInscriptions(token, params = {}) {
+
+    //     const query = new URLSearchParams({
+
+    //         draw: params.draw,
+
+    //         start: params.start,
+
+    //         length: params.length,
+
+    //         search: params.search || "",
+
+    //         orderColumn: params.orderColumn ?? 0,
+
+    //         orderDir: params.orderDir ?? "asc"
+
+    //     });
+
+    //     const res = await fetch(
+    //         `${API_URL}/inscriptions/get-all?${query.toString()}`,
+    //         {
+    //             method: "GET",
+
+    //             headers: {
+    //                 "Authorization": "Bearer " + token
+    //             }
+    //         }
+    //     );
+
+    //     const result = await res.json();
+
+    //     console.log(
+    //         "RESULTAT API INSCRIPTIONS :",
+    //         result
+    //     );
+
+    //     return {
+    //         ok: res.ok,
+    //         data: result
+    //     };
+    // }
+
     static async getAllInscriptions(token, params = {}) {
 
         const query = new URLSearchParams({
-
-            draw: params.draw,
-
-            start: params.start,
-
-            length: params.length,
-
-            search: params.search || "",
-
+            draw: params.draw ?? 0,
+            start: params.start ?? 0,
+            length: params.length ?? 10,
+            search: params.search ?? "",
             orderColumn: params.orderColumn ?? 0,
-
             orderDir: params.orderDir ?? "asc"
-
         });
 
+        const url =
+            `${API_URL}/inscriptions/get-all?${query.toString()}`;
+
+        console.log("🔵 URL API INSCRIPTIONS :", url);
+
         const res = await fetch(
-            `${API_URL}/inscriptions/get-all?${query.toString()}`,
+            url,
             {
                 method: "GET",
-
                 headers: {
                     "Authorization": "Bearer " + token
                 }
             }
         );
 
+        console.log(
+            "🟢 API INSCRIPTIONS RÉPONSE HTTP :",
+            res.status
+        );
+
         const result = await res.json();
 
         console.log(
-            "RESULTAT API INSCRIPTIONS :",
+            "🟢 RESULTAT API INSCRIPTIONS :",
             result
         );
 
