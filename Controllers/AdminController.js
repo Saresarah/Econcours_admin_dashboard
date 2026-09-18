@@ -474,5 +474,126 @@ export default class AdminController {
         document.getElementById("profil_tel").textContent = admin.telephone || "-";
         document.getElementById("profil_role").textContent = admin.role;
     }
+
+    static initImportListe() {
+
+        const boutons = document.querySelectorAll(".btn-upload-liste");
+        const inputType = document.getElementById("typeListe");
+        const inputFile = document.getElementById("fichierListe");
+        const btnImporter = document.getElementById("btnImporterListe");
+
+        if (!boutons.length || !inputType || !inputFile || !btnImporter) {
+            return;
+        }
+
+        boutons.forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                const type = button.dataset.type;
+
+                inputType.value = type;
+                inputFile.value = "";
+
+                console.log("Module sélectionné :", type);
+
+            });
+
+        });
+
+        btnImporter.addEventListener("click", async () => {
+
+            const token = this.getToken();
+            const type = inputType.value;
+            const file = inputFile.files[0];
+
+            if (!type) {
+
+                Swal.fire(
+                    "Erreur",
+                    "Le type de données est introuvable.",
+                    "error"
+                );
+
+                return;
+            }
+
+            if (!file) {
+
+                Swal.fire(
+                    "Attention",
+                    "Veuillez sélectionner un fichier.",
+                    "warning"
+                );
+
+                return;
+            }
+
+            try {
+
+                btnImporter.disabled = true;
+
+                btnImporter.innerHTML = `
+                <i class="fa-solid fa-spinner fa-spin mr-1"></i>
+                Importation...
+            `;
+
+                const res = await AdminModel.importExcel(
+                    token,
+                    type,
+                    file
+                );
+
+                if (!res.ok) {
+
+                    Swal.fire(
+                        "Erreur",
+                        res.data?.error ||
+                        res.data?.message ||
+                        "Erreur lors de l'importation.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                await Swal.fire(
+                    "Importation réussie",
+                    res.data.message ||
+                    "La liste a été importée avec succès.",
+                    "success"
+                );
+
+                inputFile.value = "";
+
+                $("#modalUploadListe").modal("hide");
+
+                this.initDataTable();
+
+            } catch (error) {
+
+                console.error("Erreur import liste :", error);
+
+                Swal.fire(
+                    "Erreur",
+                    "Une erreur est survenue lors de l'importation.",
+                    "error"
+                );
+
+            } finally {
+
+                btnImporter.disabled = false;
+
+                btnImporter.innerHTML = `
+                <i class="fa-solid fa-upload mr-1"></i>
+                Importer
+            `;
+
+            }
+
+        });
+    }
+
+   
 }
 

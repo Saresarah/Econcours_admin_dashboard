@@ -2,18 +2,112 @@ const API_URL = "http://localhost:4000/api/admin/categories";
 
 export default class CategorieModel {
 
-    static async getAllCategories(token) {
-        const res = await fetch(`${API_URL}`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
+    static async getAllCategories(token, params) {
+
+        const query = new URLSearchParams({
+            draw: params.draw,
+            start: params.start,
+            length: params.length,
+            search: params.search || "",
+            orderColumn: params.orderColumn ?? 0,
+            orderDir: params.orderDir ?? "asc"
         });
 
+        const res = await fetch(
+            `${API_URL}?${query.toString()}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
         const result = await res.json();
+
+        console.log("RESULT API CATEGORIES :", result);
 
         return {
             ok: res.ok,
             data: result
+        };
+    }
+
+    static async getCategoriesForSelect(token) {
+
+        const limit = 100;
+        let start = 0;
+
+        let allCategories = [];
+
+        let total = 0;
+
+        do {
+
+            const query = new URLSearchParams({
+                draw: 0,
+                start: start,
+                length: limit,
+                search: "",
+                orderColumn: 1,
+                orderDir: "asc"
+            });
+
+            const res = await fetch(
+                `${API_URL}?${query.toString()}`,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+            const result = await res.json();
+
+            console.log(
+                "RESULT API CATEGORIES PAGE :",
+                result
+            );
+
+            if (!res.ok) {
+
+                return {
+                    ok: false,
+                    data: result
+                };
+            }
+
+            const categories = result.data || [];
+
+            allCategories.push(...categories);
+
+            total = result.recordsTotal || 0;
+
+            start += categories.length;
+
+            if (categories.length === 0) {
+                break;
+            }
+
+        } while (allCategories.length < total);
+
+        console.log(
+            "TOUTES LES CATEGORIES POUR SELECT :",
+            allCategories
+        );
+
+        return {
+            ok: true,
+
+            data: {
+                data: allCategories,
+
+                recordsTotal: allCategories.length,
+
+                recordsFiltered: allCategories.length
+            }
         };
     }
 
@@ -76,6 +170,7 @@ export default class CategorieModel {
         );
 
         const result = await res.json();
+        console.log("RESULT API CATEGORIES :", result);
 
         return {
             ok: res.ok,

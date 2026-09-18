@@ -187,6 +187,7 @@
             AdminController.initEditAdmin();
             AdminController.initUpdateAdmin();
             AdminController.initLogout();
+            AdminController.initImportListe();
         });
     </script>
 

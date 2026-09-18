@@ -51,31 +51,35 @@
                     <div class="header">
                         <div class="container-fluid">
                             <div class="header-body">
-                                <div class="row align-items-center py-4">
-                                    <div class="col-lg-6 col-7">
-                                        <!-- <h6 class="h2 text-white d-inline-block mb-0">Utilisateur</h6> -->
-                                        <!-- <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-                                        <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-                                            <li class="breadcrumb-item"><a href="index.php"><i class="fas fa-home"></i></a></li>
-                                            <li class="breadcrumb-item"><a href="index.php">BIMMO-2 ADMIN</a></li>
-                                            <li class="breadcrumb-item active" aria-current="page">Gestion des utilisateurs</li>
-                                        </ol>
-                                    </nav> -->
-                                    </div>
-                                    <div class="col-lg-6 col-5 text-right">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                    <div class="d-flex gap-2">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            data-toggle="modal"
+                                            data-target="#ajouter_examen">
+                                            <i class="fa-solid fa-plus"></i>
+                                            Ajouter un examen
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-success btn-upload-liste"
+                                            data-type="examen"
+                                            data-toggle="modal"
+                                            data-target="#modalUploadListe">
+                                            <i class="fa-solid fa-file-excel"></i>
+                                            Importer une liste
+                                        </button>
 
                                     </div>
-                                    <div class="text-left">
-                                        <div class="col-md-12">
-                                            <button type="button" class="btn btn-primary" data-toggle="modal"
-                                                data-target="#ajouter_examen">Ajouter un examen <i
-                                                    class="fa  fa-plus "></i></button>
-                                        </div>
-                                    </div>
+
                                 </div>
 
                             </div>
                         </div>
+
                     </div>
 
                     <div class="row">
@@ -94,7 +98,7 @@
                                                 <th class="text-center">Date de l'examen</th>
                                                 <th class="text-center">Heure</th>
                                                 <th class="text-center">Lieu</th>
-                                                <th class="text-center">Coefficient</th>
+                                                <!-- <th class="text-center">Coefficient</th> -->
                                                 <th class="text-center">Intitulé</th>
                                                 <th class="text-center">Type d'examen</th>
                                                 <th class="text-center">Modifier</th>
@@ -107,7 +111,7 @@
                                                 <th class="text-center">Date de l'examen</th>
                                                 <th class="text-center">Heure</th>
                                                 <th class="text-center">Lieu</th>
-                                                <th class="text-center">Coefficient</th>
+                                                <!-- <th class="text-center">Coefficient</th> -->
                                                 <th class="text-center">Intitulé</th>
                                                 <th class="text-center">Type d'examen</th>
                                                 <th class="text-center">Modifier</th>
@@ -170,6 +174,9 @@
     <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.print.min.js"></script>
 
+    <?php include('modals/modal_examen.php'); ?>
+    <?php include('modals/modal_admin.php'); ?>
+
     <script type="module">
         import ExamenController
         from "../Controllers/ExamenController.js";
@@ -190,14 +197,15 @@
 
                 await ExamenController.init();
 
+                AdminController.initImportListe();
+
                 AdminController.initLogout();
 
             }
         );
     </script>
 
-    <?php include('modals/modal_examen.php'); ?>
-
+    
 
 </body>
 

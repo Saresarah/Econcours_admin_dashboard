@@ -20,19 +20,114 @@ export default class CentreModel {
         };
     }
 
-    static async getAllCentres(token) {
 
-        const res = await fetch(`${API_URL}/get-all-centre`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
+    static async getAllCentres(token, params) {
+
+        const query = new URLSearchParams({
+
+            draw: params.draw,
+
+            start: params.start,
+
+            length: params.length,
+
+            search: params.search || "",
+
+            orderColumn: params.orderColumn ?? 0,
+
+            orderDir: params.orderDir ?? "asc"
+
         });
 
+        const res = await fetch(
+            `${API_URL}/get-all-centre?${query.toString()}`,
+            {
+                method: "GET",
+
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
         const result = await res.json();
+
+        console.log("RESULT API CENTRES :", result);
 
         return {
             ok: res.ok,
             data: result
+        };
+    }
+
+    static async getCentresForSelect(token) {
+
+        const limit = 10;
+        let start = 0;
+        let allCentres = [];
+        let total = 0;
+
+        do {
+
+            const query = new URLSearchParams({
+                draw: 0,
+                start: start,
+                length: limit,
+                search: "",
+                orderColumn: 1,
+                orderDir: "asc"
+            });
+
+            const res = await fetch(
+                `${API_URL}/get-all-centre?${query.toString()}`,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+            const result = await res.json();
+
+            console.log(
+                "RESULT API CENTRES PAGE :",
+                result
+            );
+
+            if (!res.ok) {
+
+                return {
+                    ok: false,
+                    data: result
+                };
+            }
+
+            const centres = result.data || [];
+
+            allCentres.push(...centres);
+
+            total = result.recordsTotal || 0;
+
+            start += centres.length;
+
+            if (centres.length === 0) {
+                break;
+            }
+
+        } while (allCentres.length < total);
+
+        return {
+            ok: true,
+
+            data: {
+                data: allCentres,
+
+                recordsTotal: allCentres.length,
+
+                recordsFiltered: allCentres.length
+            }
         };
     }
 

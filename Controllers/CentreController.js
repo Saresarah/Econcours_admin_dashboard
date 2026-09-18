@@ -49,11 +49,27 @@ export default class CentreController {
         });
     }
 
-    static async getAll() {
+    static async getAll(params) {
 
         const token = AdminController.getToken();
 
-        const res = await CentreModel.getAllCentres(token);
+        if (!token) {
+            console.warn("Aucun token admin");
+
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
+        }
+
+        const res = await CentreModel.getAllCentres(
+            token,
+            params
+        );
+
+        console.log("RÉPONSE API CENTRES :", res);
 
         if (!res.ok) {
 
@@ -63,89 +79,238 @@ export default class CentreController {
                 "error"
             );
 
-            return [];
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
         }
 
-        return res.data.data;
+        return res.data;
     }
 
     static async initDataTable() {
 
+        console.log("INIT DATATABLE CENTRES");
+
         const tbody = document.getElementById("centreTableBody");
 
-        if (!tbody) return;
-
-        const centres = await this.getAll();
-
-        tbody.innerHTML = "";
-
-        centres.forEach((centre, index) => {
-
-            tbody.innerHTML += `
-            <tr>
-
-                <td class="text-center">
-                    ${index + 1}
-                </td>
-
-                <td class="text-center">
-                    ${centre.nom}
-                </td>
-
-                <td class="text-center">
-                    <button
-                        class="btn btn-warning btn-sm btn-edit"
-                        data-id="${centre.id_centre}"
-                        data-nom="${centre.nom}"
-                    >
-                        <i class="fa fa-edit"></i>
-                    </button>
-                </td>
-
-                <td class="text-center">
-
-                    <button
-                        class="btn btn-danger btn-sm btn-delete"
-                        data-id="${centre.id_centre}"
-                    >
-                        <i class="fa fa-trash"></i>
-                    </button>
-
-                </td>
-
-            </tr>
-        `;
-        });
+        if (!tbody) {
+            console.error("tbody centres introuvable");
+            return;
+        }
 
         if ($.fn.DataTable.isDataTable("#dataTable")) {
             $("#dataTable").DataTable().destroy();
         }
 
         $("#dataTable").DataTable({
+
+            processing: true,
+
+            serverSide: true,
+
             responsive: true,
-            paging: true,
+
             pageLength: 10,
+
             lengthMenu: [10, 25, 50, 100],
+
             searching: true,
+
             ordering: true,
-            info: true,
+
+            searchDelay: 500,
+
+            ajax: async function (data, callback) {
+
+                try {
+
+                    const params = {
+
+                        draw: data.draw,
+
+                        start: data.start,
+
+                        length: data.length,
+
+                        search: data.search?.value || "",
+
+                        orderColumn:
+                            data.order?.[0]?.column ?? 0,
+
+                        orderDir:
+                            data.order?.[0]?.dir ?? "asc"
+
+                    };
+
+                    console.log(
+                        "PARAMÈTRES DATATABLES CENTRES :",
+                        params
+                    );
+
+                    const result =
+                        await CentreController.getAll(params);
+
+                    console.log(
+                        "RÉSULTAT DATATABLES CENTRES :",
+                        result
+                    );
+
+                    callback(result);
+
+                } catch (error) {
+
+                    console.error(
+                        "Erreur DataTable centres :",
+                        error
+                    );
+
+                    callback({
+
+                        draw: data.draw,
+
+                        recordsTotal: 0,
+
+                        recordsFiltered: 0,
+
+                        data: []
+
+                    });
+
+                    Swal.fire(
+                        "Erreur",
+                        "Impossible de charger les centres",
+                        "error"
+                    );
+                }
+            },
+
+            columns: [
+
+                {
+                    data: null,
+
+                    title: "#",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        row,
+                        meta
+                    ) {
+
+                        return (
+                            meta.settings._iDisplayStart +
+                            meta.row +
+                            1
+                        );
+                    }
+                },
+
+                {
+                    data: "nom",
+
+                    title: "Nom",
+
+                    className: "text-center",
+
+                    render: function (data) {
+
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: null,
+
+                    title: "Modifier",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        centre
+                    ) {
+
+                        return `
+                        <button
+                            class="btn btn-warning btn-sm btn-edit"
+                            data-id="${centre.id_centre}"
+                            data-nom="${centre.nom || ""}">
+                            <i class="fa fa-edit"></i>
+                        </button>
+                    `;
+                    }
+                },
+
+                {
+                    data: null,
+
+                    title: "Supprimer",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        centre
+                    ) {
+
+                        return `
+                        <button
+                            class="btn btn-danger btn-sm btn-delete"
+                            data-id="${centre.id_centre}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    `;
+                    }
+                }
+
+            ],
 
             language: {
                 url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
 
-
             layout: {
-                topStart: [
-                    'pageLength',
-                    {
-                        buttons: ['copy', 'excel', 'csv', 'pdf']
-                    }
-                ],
-                topEnd: 'search',
 
-                bottomStart: 'info',
-                bottomEnd: 'paging'
+                topStart: [
+
+                    "pageLength",
+
+                    {
+                        buttons: [
+                            "copy",
+                            "excel",
+                            "csv",
+                            "pdf"
+                        ]
+                    }
+
+                ],
+
+                topEnd: "search",
+
+                bottomStart: "info",
+
+                bottomEnd: "paging"
             }
         });
     }

@@ -64,13 +64,13 @@
                                     <div class="col-lg-6 col-5 text-right">
 
                                     </div>
-                                    <div class="text-left">
+                                    <!-- <div class="text-left">
                                         <div class="col-md-12">
                                             <button type="button" class="btn btn-primary" data-toggle="modal"
                                                 data-target="#ajouter_examen">Ajouter un résultat <i
                                                     class="fa  fa-plus "></i></button>
                                         </div>
-                                    </div>
+                                    </div> -->
                                 </div>
 
                             </div>
@@ -91,7 +91,7 @@
                                             <tr>
                                                 <th class="text-center">N°</th>
                                                 <th class="text-center">Concours</th>
-                                                <th class="text-center">Date de composition</th>
+                                                <!-- <th class="text-center">Date de composition</th> -->
                                                 <!-- <th class="text-center">Note</th>
                                                 <th class="text-center">Moyenne générale</th>
                                                 <th class="text-center">Modifier</th> -->
@@ -102,7 +102,7 @@
                                             <tr>
                                                 <th class="text-center">N°</th>
                                                 <th class="text-center">Concours</th>
-                                                <th class="text-center">Date de composition</th>
+                                                <!-- <th class="text-center">Date de composition</th> -->
                                                 <!-- <th class="text-center">Note</th>
                                                 <th class="text-center">Moyenne générale</th>
                                                 <th class="text-center">Modifier</th> -->
@@ -164,6 +164,14 @@
 
     <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.print.min.js"></script>
+
+    <script type="module">
+        import ResultatController
+        from "../controllers/ResultatController.js";
+
+        ResultatController.init();
+    </script>
+
 </body>
 
 </html>

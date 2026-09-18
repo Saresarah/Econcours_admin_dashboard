@@ -1,4 +1,3 @@
-
 const API_URL = "http://localhost:4000/api/admin";
 
 export default class InscriptionModel {
@@ -25,18 +24,41 @@ export default class InscriptionModel {
         };
     }
 
-    static async getAllInscriptions(token) {
+    static async getAllInscriptions(token, params = {}) {
+
+        const query = new URLSearchParams({
+
+            draw: params.draw,
+
+            start: params.start,
+
+            length: params.length,
+
+            search: params.search || "",
+
+            orderColumn: params.orderColumn ?? 0,
+
+            orderDir: params.orderDir ?? "asc"
+
+        });
 
         const res = await fetch(
-            `${API_URL}/inscriptions/get-all`,
+            `${API_URL}/inscriptions/get-all?${query.toString()}`,
             {
+                method: "GET",
+
                 headers: {
-                    Authorization: "Bearer " + token
+                    "Authorization": "Bearer " + token
                 }
             }
         );
 
         const result = await res.json();
+
+        console.log(
+            "RESULTAT API INSCRIPTIONS :",
+            result
+        );
 
         return {
             ok: res.ok,

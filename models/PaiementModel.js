@@ -14,6 +14,8 @@ export default class PaiementModel {
         );
 
         const data = await res.json();
+        
+        console.log("RESULTAT API PAIEMENTS :", data);
 
         return {
             ok: res.ok,

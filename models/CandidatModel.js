@@ -3,18 +3,107 @@ const API_URL = "http://localhost:4000/api/admin";
 
 export default class CandidatModel {
 
-    static async getAllCandidats(token) {
-        const res = await fetch(`${API_URL}/candidats/all`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
+    static async getAllCandidats(token, params = {}) {
+
+        const query = new URLSearchParams({
+            draw: params.draw,
+            start: params.start,
+            length: params.length,
+            search: params.search || "",
+            orderColumn: params.orderColumn ?? 0,
+            orderDir: params.orderDir ?? "asc"
         });
 
+        const res = await fetch(
+            `${API_URL}/candidats/all?${query.toString()}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
         const result = await res.json();
+
+        console.log("RESULT API CANDIDATS :", result);
 
         return {
             ok: res.ok,
             data: result
+        };
+    }
+
+    static async getCandidatsForSelect(token) {
+
+        const limit = 10;
+        let start = 0;
+
+        let allCandidats = [];
+        let total = 0;
+
+        do {
+            const query = new URLSearchParams({
+                draw: 0,
+                start: start,
+                length: limit,
+                search: "",
+                orderColumn: 0,
+                orderDir: "asc"
+            });
+
+            const res = await fetch(
+                `${API_URL}/candidats/all?${query.toString()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+            const result = await res.json();
+
+            console.log(
+                "RESULT API CANDIDATS PAGE :",
+                result
+            );
+
+            if (!res.ok) {
+                return {
+                    ok: false,
+                    data: result
+                };
+            }
+
+            const candidats = Array.isArray(result?.data)
+                ? result.data
+                : Object.values(result?.data || {});
+
+            allCandidats.push(...candidats);
+
+            total = result?.recordsTotal || 0;
+
+            start += candidats.length;
+
+            if (candidats.length === 0) {
+                break;
+            }
+
+        } while (allCandidats.length < total);
+
+        console.log(
+            "TOUS LES CANDIDATS POUR SELECT :",
+            allCandidats
+        );
+
+        return {
+            ok: true,
+            data: {
+                data: allCandidats,
+                recordsTotal: allCandidats.length,
+                recordsFiltered: allCandidats.length
+            }
         };
     }
 

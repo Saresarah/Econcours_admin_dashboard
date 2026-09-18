@@ -10,33 +10,55 @@ export default class ConcoursController {
     // =========================================
     // GET ALL
     // =========================================
-    static async getAll() {
+    static async getAll(params) {
 
         const token = AdminController.getToken();
 
         if (!token) {
+
             console.warn("Aucun token admin");
-            return [];
+
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
         }
 
-        const res = await ConcoursModel.getAllConcours(token);
+        const res = await ConcoursModel.getAllConcours(
+            token,
+            params
+        );
 
-        // console.log("REPONSE API :", res);
+        console.log("RÉPONSE API CONCOURS :", res);
 
         if (!res.ok) {
-            Alert.error("Erreur chargement concours");
-            return [];
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: res.data?.error ||
+                    "Erreur chargement concours"
+            });
+
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
         }
 
         return res.data;
-
     }
 
     // =========================================
     // DATATABLE
     // =========================================
     static async initDataTable() {
-        console.log("INIT DATATABLE");
+
+        console.log("INIT DATATABLE CONCOURS");
 
         const tbody = document.getElementById("concoursTableBody");
 
@@ -45,163 +67,414 @@ export default class ConcoursController {
             return;
         }
 
-        const response = await this.getAll();
-
-        const concours = response.data || [];
-
-        console.log("LISTE CONCOURS :", concours);
-
-        // Destroy ancienne DataTable
-        if ($.fn.DataTable.isDataTable('#dataTable')) {
-            $('#dataTable').DataTable().destroy();
+        if ($.fn.DataTable.isDataTable("#dataTable")) {
+            $("#dataTable").DataTable().destroy();
         }
 
-        tbody.innerHTML = "";
+        $("#dataTable").DataTable({
 
-        concours.forEach((item, index) => {
+            processing: true,
 
-            tbody.innerHTML += `
-                <tr>
+            serverSide: true,
 
-                    <td class="text-center">
-                        ${index + 1}
-                    </td>
-
-                    <td class="text-center">
-                        ${item.nom || ""}
-                    </td>
-
-                    <td class="text-center">
-                        ${item.type || ""}
-                    </td>
-
-                    <td class="text-center">
-                        ${item.categorie?.libelle || ""}
-                    </td>
-
-                    <td class="text-center">
-                         ${item.nombre_postes || ""}
-                    </td>
-
-                    <td class="text-center">
-                        ${item.date_debut?.split("T")[0] || ""}
-                    </td>
-
-                    <td class="text-center">
-                        ${item.date_fin?.split("T")[0] || ""}
-                    </td>
-
-                    <td class="text-center">
-
-                        <select
-                            class="form-control statut-select"
-                            data-id="${item.id_concours}"
-                        >
-                            <option value="ATTENTE"
-                                ${item.statut_concours === "ATTENTE" ? "selected" : ""}>
-                                EN_ATTENTE
-                            </option>
-
-                            <option value="OUVERT"
-                                ${item.statut_concours === "OUVERT" ? "selected" : ""}>
-                                OUVERT
-                            </option>
-
-                            <option value="FERME"
-                                ${item.statut_concours === "FERME" ? "selected" : ""}>
-                                FERME
-                            </option>
-                        </select>
-
-                    </td>
-
-                     <td class="text-center">
-
-                        <button 
-                            class="btn btn-warning btn-sm btn-edit"
-                            data-id="${item.id_concours}"
-                            data-nom="${item.nom}"
-                            data-type="${item.type}"
-                            data-description="${item.description || ''}"
-                            data-frais="${item.frais_inscription || ''}"
-                            data-postes="${item.nombre_postes}"
-                            data-annee="${item.annee}"
-                            data-debut="${item.date_debut?.split('T')[0]}"
-                            data-fin="${item.date_fin?.split('T')[0]}"
-                            data-statut="${item.statut_concours}"
-                        >
-                            <i class="fa fa-edit"></i>
-                        </button>
-
-                    </td>
-
-                    <td class="text-center">
-
-                        <button 
-                            class="btn btn-danger btn-sm btn-delete"
-                            data-id="${item.id_concours}"
-                        >
-                            <i class="fa fa-trash"></i>
-                        </button>
-
-                    </td>
-
-                    <td class="text-center">
-                        <button
-                            class="btn btn-info btn-sm btn-candidats"
-                            data-id="${item.id_concours}"
-                            data-nom="${item.nom}"
-                            title="Voir les candidats"
-                        >
-                            <i class="fa-solid fa-users"></i>
-                        </button>
-                    </td>
-
-                    <td class="text-center">
-                        <button  
-                            class="btn btn-warning btn-sm btn-examens"
-                            data-id="${item.id_concours}"
-                            data-nom="${item.nom}"
-                            title="Voir les examens"
-                        >
-                            <i class="fa-solid fa-file-pen"></i>
-                        </button>
-                    </td>
-
-                </tr>
-            `;
-        });
-
-
-        // Nouvelle DataTable
-        $('#dataTable').DataTable({
             responsive: true,
-            paging: true,
+
             pageLength: 10,
+
             lengthMenu: [10, 25, 50, 100],
+
             searching: true,
+
             ordering: true,
-            info: true,
+
+            searchDelay: 500,
+
+            ajax: async function (data, callback) {
+
+                try {
+
+                    const params = {
+
+                        draw: data.draw,
+
+                        start: data.start,
+
+                        length: data.length,
+
+                        search: data.search?.value || "",
+
+                        orderColumn:
+                            data.order?.[0]?.column ?? 0,
+
+                        orderDir:
+                            data.order?.[0]?.dir ?? "asc"
+                    };
+
+                    console.log(
+                        "PARAMÈTRES DATATABLES CONCOURS :",
+                        params
+                    );
+
+                    const result =
+                        await ConcoursController.getAll(params);
+
+                    callback(result);
+
+                } catch (error) {
+
+                    console.error(
+                        "Erreur DataTable concours :",
+                        error
+                    );
+
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: []
+                    });
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erreur",
+                        text: "Impossible de charger les concours"
+                    });
+                }
+            },
+            columns: [
+
+                {
+                    data: null,
+
+                    title: "#",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        row,
+                        meta
+                    ) {
+
+                        return (
+                            meta.settings._iDisplayStart +
+                            meta.row +
+                            1
+                        );
+                    }
+                },
+
+                {
+                    data: "nom",
+
+                    title: "Nom",
+
+                    className: "text-center",
+
+                    render: function (data) {
+
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: "type",
+
+                    title: "Type",
+
+                    className: "text-center",
+
+                    render: function (data) {
+
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: "categorie.libelle",
+
+                    title: "Catégorie",
+
+                    className: "text-center",
+
+                    render: function (data) {
+
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: "nombre_postes",
+
+                    title: "Nombre de postes",
+
+                    className: "text-center",
+
+                    render: function (data) {
+
+                        return data ?? "-";
+                    }
+                },
+
+                {
+                    data: "date_debut",
+
+                    title: "Date début",
+
+                    className: "text-center",
+
+                    render: function (data) {
+
+                        return data
+                            ? data.split("T")[0]
+                            : "-";
+                    }
+                },
+
+                {
+                    data: "date_fin",
+
+                    title: "Date fin",
+
+                    className: "text-center",
+
+                    render: function (data) {
+
+                        return data
+                            ? data.split("T")[0]
+                            : "-";
+                    }
+                },
+
+                {
+                    data: "statut_concours",
+
+                    title: "Statut",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        concours
+                    ) {
+
+                        return `
+                <select
+                    class="form-control statut-select"
+                    data-id="${concours.id_concours}">
+
+                    <option
+                        value="ATTENTE"
+                        ${data === "ATTENTE" ? "selected" : ""}>
+                        EN_ATTENTE
+                    </option>
+
+                    <option
+                        value="OUVERT"
+                        ${data === "OUVERT" ? "selected" : ""}>
+                        OUVERT
+                    </option>
+
+                    <option
+                        value="FERME"
+                        ${data === "FERME" ? "selected" : ""}>
+                        FERME
+                    </option>
+
+                </select>
+            `;
+                    }
+                },
+
+                {
+                    data: null,
+
+                    title: "Modifier",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        concours
+                    ) {
+
+                        return `
+                <button
+                    class="btn btn-warning btn-sm btn-edit"
+
+                    data-id="${concours.id_concours}"
+
+                    data-nom="${concours.nom || ""}"
+
+                    data-type="${concours.type || ""}"
+
+                    data-description="${concours.description || ""}"
+
+                    data-frais="${concours.frais_inscription || ""}"
+
+                    data-postes="${concours.nombre_postes || ""}"
+
+                    data-annee="${concours.annee || ""}"
+
+                    data-debut="${concours.date_debut
+                                ? concours.date_debut.split("T")[0]
+                                : ""}"
+
+                    data-fin="${concours.date_fin
+                                ? concours.date_fin.split("T")[0]
+                                : ""}"
+
+                    data-statut="${concours.statut_concours || ""}">
+
+                    <i class="fa fa-edit"></i>
+
+                </button>
+            `;
+                    }
+                },
+
+                {
+                    data: null,
+
+                    title: "Supprimer",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        concours
+                    ) {
+
+                        return `
+                <button
+                    class="btn btn-danger btn-sm btn-delete"
+
+                    data-id="${concours.id_concours}">
+
+                    <i class="fa fa-trash"></i>
+
+                </button>
+            `;
+                    }
+                },
+
+                {
+                    data: null,
+
+                    title: "Candidats",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        concours
+                    ) {
+
+                        return `
+                <button
+                    class="btn btn-info btn-sm btn-candidats"
+
+                    data-id="${concours.id_concours}"
+
+                    data-nom="${concours.nom || ""}"
+
+                    title="Voir les candidats">
+
+                    <i class="fa-solid fa-users"></i>
+
+                </button>
+            `;
+                    }
+                },
+
+                {
+                    data: null,
+
+                    title: "Examens",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false,
+
+                    render: function (
+                        data,
+                        type,
+                        concours
+                    ) {
+
+                        return `
+                <button
+                    class="btn btn-warning btn-sm btn-examens"
+
+                    data-id="${concours.id_concours}"
+
+                    data-nom="${concours.nom || ""}"
+
+                    title="Voir les examens">
+
+                    <i class="fa-solid fa-file-pen"></i>
+
+                </button>
+            `;
+                    }
+                }
+
+            ],
 
             language: {
                 url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
 
-
             layout: {
+
                 topStart: [
-                    'pageLength',
+                    "pageLength",
                     {
-                        buttons: ['copy', 'excel', 'csv', 'pdf']
+                        buttons: [
+                            "copy",
+                            "excel",
+                            "csv",
+                            "pdf"
+                        ]
                     }
                 ],
-                topEnd: 'search',
 
-                bottomStart: 'info',
-                bottomEnd: 'paging'
+                topEnd: "search",
+
+                bottomStart: "info",
+
+                bottomEnd: "paging"
             }
         });
 
+        this.bindEvents();
         this.bindEvents();
     }
 
@@ -523,7 +796,7 @@ export default class ConcoursController {
         const token = AdminController.getToken();
 
         // ===== CATEGORIES =====
-        const catRes = await CategorieModel.getAllCategories(token);
+        const catRes = await CategorieModel.getCategoriesForSelect(token);
 
         const catSelect = $('#categorieId');
 
@@ -536,7 +809,7 @@ export default class ConcoursController {
         }
 
         // ===== CENTRES =====
-        const centreRes = await CentreModel.getAllCentres(token);
+        const centreRes = await CentreModel.getCentresForSelect(token);
 
         const centreSelect = $('#centres');
 

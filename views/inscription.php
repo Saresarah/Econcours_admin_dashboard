@@ -51,31 +51,35 @@
                     <div class="header">
                         <div class="container-fluid">
                             <div class="header-body">
-                                <div class="row align-items-center py-4">
-                                    <div class="col-lg-6 col-7">
-                                        <!-- <h6 class="h2 text-white d-inline-block mb-0">Utilisateur</h6> -->
-                                        <!-- <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-                                        <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-                                            <li class="breadcrumb-item"><a href="index.php"><i class="fas fa-home"></i></a></li>
-                                            <li class="breadcrumb-item"><a href="index.php">BIMMO-2 ADMIN</a></li>
-                                            <li class="breadcrumb-item active" aria-current="page">Gestion des utilisateurs</li>
-                                        </ol>
-                                    </nav> -->
-                                    </div>
-                                    <div class="col-lg-6 col-5 text-right">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                    <div class="d-flex gap-2">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            data-toggle="modal"
+                                            data-target="#ajouter_inscription">
+                                            <i class="fa-solid fa-plus"></i>
+                                            Ajouter une inscription
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-success btn-upload-liste"
+                                            data-type="inscription"
+                                            data-toggle="modal"
+                                            data-target="#modalUploadListe">
+                                            <i class="fa-solid fa-file-excel"></i>
+                                            Importer une liste
+                                        </button>
 
                                     </div>
-                                    <div class="text-left">
-                                        <div class="col-md-12">
-                                            <button type="button" class="btn-primary" data-toggle="modal"
-                                                data-target="#ajouter_inscription">Ajouter une inscription <i
-                                                    class="fa  fa-plus "></i></button>
-                                        </div>
-                                    </div>
+
                                 </div>
 
                             </div>
                         </div>
+
                     </div>
 
                     <div class="row">
@@ -93,7 +97,6 @@
                                                 <th class="text-center">N°</th>
                                                 <th class="text-center">Nom du candidat</th>
                                                 <th class="text-center">Concours</th>
-                                                <th class="text-center">Supprimer</th>
                                                 <th class="text-center">Voir détails</th>
 
                                             </tr>
@@ -102,8 +105,7 @@
                                             <tr>
                                                 <th class="text-center">N°</th>
                                                 <th class="text-center">Nom du candidat</th>
-                                                <th class="text-center">Concours</th> 
-                                                <th class="text-center">Supprimer</th>
+                                                <th class="text-center">Concours</th>
                                                 <th class="text-center">Voir détails</th>
                                         </tfoot>
 
@@ -166,6 +168,8 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <?php include('modals/modal_inscription.php'); ?>
+    <?php include('modals/modal_admin.php'); ?>
+
     <script type="module">
         import InscriptionController from "../controllers/InscriptionController.js";
         import AdminController from "../Controllers/AdminController.js";
@@ -175,14 +179,16 @@
             if (!token) {
                 return;
             }
-            
+
             InscriptionController.initInscriptionConcours();
             InscriptionController.loadCentres();
             InscriptionController.loadConcours();
             InscriptionController.loadCandidats();
-            InscriptionController.loadInscriptions();
+            InscriptionController.getAll();
+            InscriptionController.initDataTable();
             InscriptionController.initEvents();
             InscriptionController.initDeleteInscription();
+            AdminController.initImportListe();
             AdminController.initLogout();
             $(document).on("change", "#id_concours", async function() {
 

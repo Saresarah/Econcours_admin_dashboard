@@ -2,19 +2,107 @@ const API_URL = "http://localhost:4000/api/admin";
 
 export default class ConcoursModel {
 
-    static async getAllConcours(token) {
-        const res = await fetch(`${API_URL}/concours`, {
-            method: "GET",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
+    static async getAllConcours(token, params = {}) {
+
+        const query = new URLSearchParams({
+            draw: params.draw,
+            start: params.start,
+            length: params.length,
+            search: params.search || "",
+            orderColumn: params.orderColumn ?? 0,
+            orderDir: params.orderDir ?? "asc"
         });
 
+        const res = await fetch(
+            `${API_URL}/concours?${query.toString()}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
         const result = await res.json();
+
+        console.log("RESULT API CONCOURS :", result);
 
         return {
             ok: res.ok,
             data: result
+        };
+    }
+
+    static async getConcoursForSelect(token) {
+
+        const limit = 10;
+        let start = 0;
+
+        let allConcours = [];
+        let total = 0;
+
+        do {
+            const query = new URLSearchParams({
+                draw: 0,
+                start: start,
+                length: limit,
+                search: "",
+                orderColumn: 0,
+                orderDir: "asc"
+            });
+
+            const res = await fetch(
+                `${API_URL}/concours?${query.toString()}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                }
+            );
+
+            const result = await res.json();
+
+            console.log(
+                "RESULT API CONCOURS PAGE :",
+                result
+            );
+
+            if (!res.ok) {
+                return {
+                    ok: false,
+                    data: result
+                };
+            }
+
+            const concours = Array.isArray(result?.data)
+                ? result.data
+                : Object.values(result?.data || {});
+
+            allConcours.push(...concours);
+
+            total = result?.recordsTotal || 0;
+
+            start += concours.length;
+
+            if (concours.length === 0) {
+                break;
+            }
+
+        } while (allConcours.length < total);
+
+        console.log(
+            "TOUS LES CONCOURS POUR SELECT :",
+            allConcours
+        );
+
+        return {
+            ok: true,
+            data: {
+                data: allConcours,
+                recordsTotal: allConcours.length,
+                recordsFiltered: allConcours.length
+            }
         };
     }
 

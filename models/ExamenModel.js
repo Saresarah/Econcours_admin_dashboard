@@ -20,9 +20,9 @@ export default class ExamenModel {
         };
     }
 
-    static async getAllExamens(token) {
+    static async getAllExamens(token,page = 1, limit = 10) {
 
-        const res = await fetch(`${API_URL}/examen/list-exam`, {
+        const res = await fetch(`${API_URL}/examen/list-exam?page=${page}&limit=${limit}`, {
 
             method: "GET",
 
@@ -33,6 +33,7 @@ export default class ExamenModel {
         });
 
         const result = await res.json();
+        console.log("RESULTAT API EXAMENS :", result);
 
         return {
             ok: res.ok,

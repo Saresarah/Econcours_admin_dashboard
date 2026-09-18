@@ -5,42 +5,339 @@ import AdminController from "./AdminController.js";
 
 export default class CandidatController {
 
-    static async getAll() {
+    // static async getAll(page = 1, limit = 10) {
+
+    //     const token = AdminController.getToken();
+
+    //     if (!token) {
+    //         console.warn("Aucun token admin");
+
+    //         return {
+    //             candidat: [],
+    //             page: 1,
+    //             limit: 10,
+    //             total: 0,
+    //             totalPages: 0
+    //         };
+    //     }
+
+    //     const res = await CandidatModel.getAllCandidats(
+    //         token,
+    //         page,
+    //         limit
+    //     );
+
+    //     console.log("REPONSE API :", res);
+
+    //     if (!res.ok) {
+
+    //         Swal.fire({
+    //             icon: "error",
+    //             title: "Erreur",
+    //             text: res.data?.error || "Erreur chargement candidats"
+    //         });
+
+    //         return {
+    //             candidat: [],
+    //             page: 1,
+    //             limit: 10,
+    //             total: 0,
+    //             totalPages: 0
+    //         };
+    //     }
+
+    //     return res.data;
+    // }
+
+    // static async initDataTable() {
+
+    //     const tbody = document.getElementById("candidatTableBody");
+
+    //     if (!tbody) {
+    //         console.error("tbody introuvable");
+    //         return;
+    //     }
+
+    //     if ($.fn.DataTable.isDataTable("#dataTable")) {
+    //         $("#dataTable").DataTable().destroy();
+    //     }
+
+    //     $("#dataTable").DataTable({
+
+    //         processing: true,
+
+    //         serverSide: true,
+
+    //         pageLength: 10,
+
+    //         lengthMenu: [10, 25, 50, 100],
+
+    //         ajax: async function (data, callback) {
+
+    //             try {
+
+    //                 const token = AdminController.getToken();
+
+    //                 const start = data.start;
+    //                 const length = data.length;
+
+    //                 const page = Math.floor(start / length) + 1;
+
+    //                 console.log("PAGE DEMANDÉE :", page);
+    //                 console.log("LIMIT :", length);
+
+    //                 const res = await CandidatModel.getAllCandidats(
+    //                     token,
+    //                     page,
+    //                     length
+    //                 );
+
+    //                 console.log("RÉPONSE API :", res);
+
+    //                 if (!res.ok) {
+
+    //                     Swal.fire({
+    //                         icon: "error",
+    //                         title: "Erreur",
+    //                         text: res.data?.error ||
+    //                             "Erreur chargement candidats"
+    //                     });
+
+    //                     callback({
+    //                         draw: data.draw,
+    //                         recordsTotal: 0,
+    //                         recordsFiltered: 0,
+    //                         data: []
+    //                     });
+
+    //                     return;
+    //                 }
+
+    //                 const result = res.data;
+
+    //                 console.log("DONNÉES CANDIDATS :", result);
+
+    //                 const candidats = result.data || [];
+
+    //                 callback({
+
+    //                     draw: data.draw,
+
+    //                     recordsTotal: result.total || 0,
+
+    //                     recordsFiltered: result.total || 0,
+
+    //                     data: candidats.map((data, index) => {
+
+    //                         return [
+    //                             start + index + 1,
+
+    //                             data.nom || "-",
+
+    //                             data.prenom || "-",
+
+    //                             data.numero_cnib || "-",    
+    //                             data.telephone || "-",
+
+    //                             data.email || "-",
+
+    //                             data.type_candidat || "-",
+
+    //                             `
+    //                         <button
+    //                             class="btn btn-warning btn-sm edit-candidat"
+    //                             data-id="${data.id_candidat}"
+    //                             data-email="${data.email || ""}"
+    //                             data-nom-jeune-fille="${data.nom_jeune_fille || ""}"
+    //                             data-emploi="${data.emploi || ""}"
+    //                             data-ministere="${data.ministere || ""}"
+    //                             data-matricule="${data.matricule || ""}">
+    //                             <i class="fa fa-edit"></i>
+    //                         </button>
+    //                         `,
+
+    //                             `
+    //                         <button
+    //                             class="btn btn-danger btn-sm delete-candidat"
+    //                             data-id="${data.id_candidat}">
+    //                             <i class="fa fa-trash"></i>
+    //                         </button>
+    //                         `,
+
+    //                             `
+    //                         <button
+    //                             class="btn btn-info btn-sm detail-candidat"
+    //                             data-id="${data.id_candidat}">
+    //                             <i class="fa fa-eye"></i>
+    //                         </button>
+    //                         `
+    //                         ];
+
+    //                     })
+
+    //                 });
+
+    //             } catch (error) {
+
+    //                 console.error(
+    //                     "Erreur DataTable candidats :",
+    //                     error
+    //                 );
+
+    //                 callback({
+    //                     draw: data.draw,
+    //                     recordsTotal: 0,
+    //                     recordsFiltered: 0,
+    //                     data: []
+    //                 });
+
+    //                 Swal.fire({
+    //                     icon: "error",
+    //                     title: "Erreur",
+    //                     text: "Impossible de charger les candidats"
+    //                 });
+
+    //             }
+
+    //         },
+
+    //         columns: [
+
+    //             {
+    //                 title: "#",
+    //                 className: "text-center"
+    //             },
+
+    //             {
+    //                 title: "Nom",
+    //                 className: "text-center"
+    //             },
+
+    //             {
+    //                 title: "Prénom",
+    //                 className: "text-center"
+    //             },
+
+    //             {
+    //                 title: "CNIB",
+    //                 className: "text-center"
+    //             },
+
+    //             {
+    //                 title: "Téléphone",
+    //                 className: "text-center"
+    //             },
+
+    //             {
+    //                 title: "Email",
+    //                 className: "text-center"
+    //             },
+
+    //             {
+    //                 title: "Type candidat",
+    //                 className: "text-center"
+    //             },
+
+    //             {
+    //                 title: "Modifier",
+    //                 className: "text-center",
+    //                 orderable: false,
+    //                 searchable: false
+    //             },
+
+    //             {
+    //                 title: "Supprimer",
+    //                 className: "text-center",
+    //                 orderable: false,
+    //                 searchable: false
+    //             },
+
+    //             {
+    //                 title: "Détails",
+    //                 className: "text-center",
+    //                 orderable: false,
+    //                 searchable: false
+    //             }
+
+    //         ],
+
+    //         responsive: true,
+
+    //         searching: true,
+
+    //         ordering: true,
+
+    //         language: {
+    //             url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
+    //         },
+
+    //         layout: {
+
+    //             topStart: [
+    //                 "pageLength",
+    //                 {
+    //                     buttons: [
+    //                         "copy",
+    //                         "excel",
+    //                         "csv",
+    //                         "pdf"
+    //                     ]
+    //                 }
+    //             ],
+
+    //             topEnd: "search",
+
+    //             bottomStart: "info",
+
+    //             bottomEnd: "paging"
+
+    //         }
+
+    //     });
+
+    // }
+    static async getAll(params) {
 
         const token = AdminController.getToken();
 
         if (!token) {
             console.warn("Aucun token admin");
-            return [];
+
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
         }
 
-        const res = await CandidatModel.getAllCandidats(token);
+        const res = await CandidatModel.getAllCandidats(
+            token,
+            params
+        );
 
         console.log("REPONSE API :", res);
 
         if (!res.ok) {
-            console.log(res.data);
-            Alert.error("Erreur chargement candidats");
-            return [];
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: res.data?.error ||
+                    "Erreur chargement candidats"
+            });
+
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
         }
 
-        // CAS 1 : API retourne directement un tableau
-        if (Array.isArray(res.data)) {
-            return res.data;
-        }
-
-        // CAS 2 : API retourne { data: [...] }
-        if (Array.isArray(res.data.data)) {
-            return res.data.data;
-        }
-
-        // CAS 3 : API retourne { candidat: [...] }
-        if (Array.isArray(res.data.candidat)) {
-            return res.data.candidat;
-        }
-
-        return [];
+        return res.data;
     }
+
 
     static async initDataTable() {
 
@@ -51,89 +348,265 @@ export default class CandidatController {
             return;
         }
 
-        const data = await this.getAll();
+        if ($.fn.DataTable.isDataTable("#dataTable")) {
+            $("#dataTable").DataTable().destroy();
+        }
 
-        console.log("DATA API :", data);
+        $("#dataTable").DataTable({
 
-        const candidats = data;
+            processing: true,
 
-        console.log("LISTE CANDIDATS :", candidats);
+            serverSide: true,
 
-        tbody.innerHTML = "";
-
-        candidats.forEach((item, index) => {
-
-            const candidat = item;
-
-            tbody.innerHTML += `
-<tr>
-    <td class="text-center">${index + 1}</td>
-    <td class="text-center">${candidat.nom}</td>
-    <td class="text-center">${candidat.prenom}</td>
-    <td class="text-center">${candidat.numero_cnib}</td>
-    <td class="text-center">${candidat.telephone}</td>
-    <td class="text-center">${candidat.email}</td>
-    <td class="text-center">${candidat.type_candidat}</td>
-
-    <td class="text-center">
-       <button class="btn btn-warning btn-sm edit-candidat"
-    data-id="${candidat.id_candidat}"
-    data-email="${candidat.email || ''}"
-    data-nom-jeune-fille="${candidat.nom_jeune_fille || ''}"
-    data-emploi="${candidat.emploi || ''}"
-    data-ministere="${candidat.ministere || ''}"
-    data-matricule="${candidat.matricule || ''}"
->
-    <i class="fa fa-edit"></i>
-</button>
-    </td>
-
-<td class="text-center">
-    <button
-        class="btn btn-danger btn-sm delete-candidat"
-        data-id="${candidat.id_candidat}"
-    >
-        <i class="fa fa-trash"></i>
-    </button>
-    </td>
-
-    <td class="text-center">
-
-    <button
-        class="btn btn-info btn-sm detail-candidat"
-        data-id="${candidat.id_candidat}"
-    >
-        <i class="fa fa-eye"></i>
-    </button>
-
-    </td>
-    </tr>
-        `;
-        });
-
-        $('#dataTable').DataTable({
-            destroy: true,
             pageLength: 10,
+
+            lengthMenu: [10, 25, 50, 100],
+
+            ajax: async function (data, callback) {
+
+                try {
+
+                    const token = AdminController.getToken();
+
+                    if (!token) {
+                        callback({
+                            draw: data.draw,
+                            recordsTotal: 0,
+                            recordsFiltered: 0,
+                            data: []
+                        });
+
+                        return;
+                    }
+
+                    const params = {
+                        draw: data.draw,
+
+                        start: data.start,
+
+                        length: data.length,
+
+                        search: data.search?.value || "",
+
+                        orderColumn: data.order?.[0]?.column ?? 0,
+
+                        orderDir: data.order?.[0]?.dir ?? "asc"
+                    };
+
+                    console.log("PARAMÈTRES DATATABLES :", params);
+
+                    const res = await CandidatModel.getAllCandidats(
+                        token,
+                        params
+                    );
+
+                    console.log("RÉPONSE API :", res);
+
+                    if (!res.ok) {
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Erreur",
+                            text: res.data?.error ||
+                                "Erreur chargement candidats"
+                        });
+
+                        callback({
+                            draw: data.draw,
+                            recordsTotal: 0,
+                            recordsFiltered: 0,
+                            data: []
+                        });
+
+                        return;
+                    }
+
+                    const result = res.data;
+
+                    console.log("RÉSULTAT DATATABLES :", result);
+
+                    callback(result);
+
+                } catch (error) {
+
+                    console.error(
+                        "Erreur DataTable candidats :",
+                        error
+                    );
+
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: []
+                    });
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erreur",
+                        text: "Impossible de charger les candidats"
+                    });
+                }
+            },
+
+            columns: [
+
+                {
+                    data: null,
+                    title: "#",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row, meta) {
+                        return meta.settings._iDisplayStart + meta.row + 1;
+                    }
+                },
+
+                {
+                    data: "nom",
+                    title: "Nom",
+                    className: "text-center"
+                },
+
+                {
+                    data: "prenom",
+                    title: "Prénom",
+                    className: "text-center"
+                },
+
+                {
+                    data: "numero_cnib",
+                    title: "CNIB",
+                    className: "text-center",
+                    render: function (data) {
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: "telephone",
+                    title: "Téléphone",
+                    className: "text-center",
+                    render: function (data) {
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: "email",
+                    title: "Email",
+                    className: "text-center",
+                    render: function (data) {
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: "type_candidat",
+                    title: "Type candidat",
+                    className: "text-center",
+                    render: function (data) {
+                        return data || "-";
+                    }
+                },
+
+                {
+                    data: null,
+                    title: "Modifier",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false,
+
+                    render: function (data, type, row) {
+
+                        return `
+                        <button
+                            class="btn btn-warning btn-sm edit-candidat"
+                            data-id="${row.id_candidat}"
+                            data-email="${row.email || ""}"
+                            data-nom-jeune-fille="${row.nom_jeune_fille || ""}"
+                            data-emploi="${row.emploi || ""}"
+                            data-ministere="${row.ministere || ""}"
+                            data-matricule="${row.matricule || ""}">
+                            <i class="fa fa-edit"></i>
+                        </button>
+                    `;
+                    }
+                },
+
+                {
+                    data: null,
+                    title: "Supprimer",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false,
+
+                    render: function (data, type, row) {
+
+                        return `
+                        <button
+                            class="btn btn-danger btn-sm delete-candidat"
+                            data-id="${row.id_candidat}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    `;
+                    }
+                },
+
+                {
+                    data: null,
+                    title: "Détails",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false,
+
+                    render: function (data, type, row) {
+
+                        return `
+                        <button
+                            class="btn btn-info btn-sm detail-candidat"
+                            data-id="${row.id_candidat}">
+                            <i class="fa fa-eye"></i>
+                        </button>
+                    `;
+                    }
+                }
+
+            ],
+
+            responsive: true,
+
+            searching: true,
+
+            ordering: true,
+
+            searchDelay: 500,
 
             language: {
                 url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
 
-
             layout: {
+
                 topStart: [
-                    'pageLength',
+                    "pageLength",
                     {
-                        buttons: ['copy', 'excel', 'csv', 'pdf']
+                        buttons: [
+                            "copy",
+                            "excel",
+                            "csv",
+                            "pdf"
+                        ]
                     }
                 ],
-                topEnd: 'search',
 
-                bottomStart: 'info',
-                bottomEnd: 'paging'
+                topEnd: "search",
+
+                bottomStart: "info",
+
+                bottomEnd: "paging"
             }
         });
-
     }
 
 
@@ -457,12 +930,19 @@ ${concoursHTML}
             const res = await CandidatModel.createCandidat(token, data);
 
             if (!res.ok) {
-                Alert.error(res.data.error || "Erreur création");
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: res.data.error || "Erreur création"
+                });
+
                 return;
             }
-
-            Alert.success(res.data.message || "Candidat créé avec succès");
-
+            Swal.fire({
+                icon: "success",
+                title: "Succès",
+                text: res.data.message || "Candidat créé avec succès"
+            });
             // fermer modal
             $('#ajouter_candidat').modal('hide');
 

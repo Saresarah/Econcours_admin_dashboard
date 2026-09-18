@@ -71,7 +71,7 @@ export default class InscriptionController {
 
         const token = AdminController.getToken();
 
-        const res = await ConcoursModel.getAllConcours(token);
+        const res = await ConcoursModel.getConcoursForSelect(token);
 
         const select = $("#id_concours");
 
@@ -101,7 +101,7 @@ export default class InscriptionController {
 
         const token = AdminController.getToken();
 
-        const res = await CandidatModel.getAllCandidats(token);
+        const res = await CandidatModel.getCandidatsForSelect(token);
 
         console.log("CANDIDATS :", res);
 
@@ -110,8 +110,8 @@ export default class InscriptionController {
         select.empty();
 
         select.append(`<option value="">Sélectionnez un candidat</option>`);
-        console.log("Premier candidat :", res.data.candidat[0]);
-        res.data.candidat.forEach(c => {
+        console.log("Premier candidat :", res.data.data[0]);
+        res.data.data.forEach(c => {
 
             select.append(`
             <option value="${c.id_candidat}">
@@ -131,7 +131,7 @@ export default class InscriptionController {
 
         const token = AdminController.getToken();
 
-        const res = await CentreModel.getAllCentres(token);
+        const res = await CentreModel.getCentresForSelect(token);
 
         const select = $("#id_centre");
 
@@ -157,96 +157,280 @@ export default class InscriptionController {
         });
     }
 
-    static async loadInscriptions() {
+    static async getAll(params) {
 
         const token = AdminController.getToken();
-        const res = await InscriptionModel.getAllInscriptions(token);
 
-        console.log("INSCRIPTIONS :", res);
+        if (!token) {
 
-        const tbody = document.querySelector("#inscriptionTable tbody");
-        tbody.innerHTML = "";
+            console.warn("Aucun token admin");
 
-        const data = Object.values(res.data.data);
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
+        }
 
-        data.forEach((item, index) => {
+        const res =
+            await InscriptionModel.getAllInscriptions(
+                token,
+                params
+            );
 
-            const preview = item.inscriptions
-                .slice(0, 2)
-                .map(i => `
-                <div>
-                    <b>${i.concours.nom}</b>
-                </div>
-            `).join("");
+        console.log(
+            "RÉPONSE API INSCRIPTIONS :",
+            res
+        );
 
-            tbody.innerHTML += `
-            <tr>
-                <td class="text-center">${index + 1}</td>
+        if (!res.ok) {
 
-                <td class="text-center">
-                    ${item.candidat.nom} ${item.candidat.prenom}
-                </td>
+            Swal.fire(
+                "Erreur",
+                "Impossible de charger les inscriptions",
+                "error"
+            );
 
-                <td class="text-center">
-                    ${preview}
-                    ${item.inscriptions.length > 2
-                    ? `<span class="badge badge-info">+${item.inscriptions.length - 2} autres</span>`
-                    : ""
-                }
-                </td>
-                <td class="text-center">
-                    <button class="btn btn-danger btn-sm btn-detail-delete"
-                        data-id="${item.candidat.id_candidat}">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </td>
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
+        }
 
-
-                <td class="text-center">
-                    <button class="btn btn-info btn-sm btn-detail-candidat"
-                        data-id="${item.candidat.id_candidat}">
-                        <i class="fa fa-eye"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-        });
-
-        this.initDataTable();
+        return res.data;
     }
 
     static initDataTable() {
 
         if ($.fn.DataTable.isDataTable("#inscriptionTable")) {
-            $("#inscriptionTable").DataTable().destroy();
+            $("#inscriptionTable")
+                .DataTable()
+                .destroy();
         }
 
         $("#inscriptionTable").DataTable({
-            destroy: true,
+
+            processing: true,
+
+            serverSide: true,
+
             responsive: true,
-            paging: true,
+
             pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
+
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
+
             searching: true,
+
             ordering: true,
+
             info: true,
 
-            language: {
-                url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
+            searchDelay: 500,
+
+            ajax: async function (data, callback) {
+
+                try {
+
+                    const params = {
+
+                        draw: data.draw,
+
+                        start: data.start,
+
+                        length: data.length,
+
+                        search:
+                            data.search?.value || "",
+
+                        orderColumn:
+                            data.order?.[0]?.column ?? 0,
+
+                        orderDir:
+                            data.order?.[0]?.dir ?? "asc"
+                    };
+
+                    console.log(
+                        "PARAMÈTRES DATATABLES INSCRIPTIONS :",
+                        params
+                    );
+
+                    const result =
+                        await InscriptionController.getAll(
+                            params
+                        );
+
+                    console.log(
+                        "RÉSULTAT DATATABLES INSCRIPTIONS :",
+                        result
+                    );
+
+                    const inscriptions =
+                        Array.isArray(result?.data)
+                            ? result.data
+                            : Object.values(
+                                result?.data || {}
+                            );
+
+                    const rows =
+                        inscriptions.map(
+                            (item, index) => {
+
+                                const candidat =
+                                    item.candidat || {};
+
+                                const listeInscriptions =
+                                    item.inscriptions || [];
+
+                                const preview =
+                                    listeInscriptions
+                                        .slice(0, 2)
+                                        .map(i => `
+                                        <div>
+                                            <b>
+                                                ${i.concours?.nom || "-"}
+                                            </b>
+                                        </div>
+                                    `)
+                                        .join("");
+
+                                const autres =
+                                    listeInscriptions.length > 2
+                                        ? `
+                                        <span class="badge badge-info">
+                                            +${listeInscriptions.length - 2} autres
+                                        </span>
+                                    `
+                                        : "";
+
+                                return [
+
+                                    params.start + index + 1,
+
+                                    `
+                                    ${candidat.nom || ""}
+                                    ${candidat.prenom || ""}
+                                `,
+
+                                    `
+                                    ${preview}
+                                    ${autres}
+                                `,
+
+                                    `
+                                    <button
+                                        class="btn btn-info btn-sm btn-detail-candidat"
+                                        data-id="${candidat.id_candidat}">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                `
+                                ];
+                            }
+                        );
+
+                    callback({
+
+                        draw: result?.draw ?? data.draw,
+
+                        recordsTotal:
+                            result?.recordsTotal ?? 0,
+
+                        recordsFiltered:
+                            result?.recordsFiltered ?? 0,
+
+                        data: rows
+                    });
+
+                } catch (error) {
+
+                    console.error(
+                        "ERREUR DATATABLE INSCRIPTIONS :",
+                        error
+                    );
+
+                    callback({
+
+                        draw: data.draw,
+
+                        recordsTotal: 0,
+
+                        recordsFiltered: 0,
+
+                        data: []
+                    });
+                }
             },
 
-            
-            layout: {
-                topStart: [
-                    'pageLength',
-                    {
-                        buttons: ['copy', 'excel', 'csv', 'pdf']
-                    }
-                ],
-                topEnd: 'search',
+            columns: [
 
-                bottomStart: 'info',
-                bottomEnd: 'paging'
+                {
+                    title: "#",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false
+                },
+
+                {
+                    title: "Candidat",
+
+                    className: "text-center"
+                },
+
+                {
+                    title: "Concours",
+
+                    className: "text-center"
+                },
+
+                {
+                    title: "Détails",
+
+                    className: "text-center",
+
+                    orderable: false,
+
+                    searchable: false
+                }
+
+            ],
+
+            language: {
+
+                url:
+                    "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
+            },
+
+            layout: {
+
+                topStart: [
+
+                    "pageLength",
+
+                    {
+                        buttons: [
+                            "copy",
+                            "excel",
+                            "csv",
+                            "pdf"
+                        ]
+                    }
+
+                ],
+
+                topEnd: "search",
+
+                bottomStart: "info",
+
+                bottomEnd: "paging"
             }
         });
     }
@@ -305,37 +489,73 @@ export default class InscriptionController {
         const concoursHTML = details.map(r => {
 
             const d = r.data.data;
+
             console.log("DETAIL INSCRIPTION", d);
+            console.log("DIPLOMES :", d.diplomes);
+
+            const diplomesHTML = d.diplomes?.length
+                ? d.diplomes.map((diplome, index) => `
+            <a
+                href="${diplome.url}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="d-block mb-1"
+            >
+                <i class="fa-solid fa-file-pdf text-danger mr-1"></i>
+                Diplôme ${index + 1}
+            </a>
+        `).join("")
+                : "-";
 
             return `
-            <tr>
-                <td>${d.concours.nom}</td>
-                <td>${d.concours.categorie?.libelle || "-"}</td>
-                <td>${d.centre.nom}</td>
-                <td>${d.statut_inscription}</td>
-                <td>${new Date(d.date_inscription).toLocaleDateString()}</td>
+        <tr>
+            <td>${d.concours?.nom || "-"}</td>
 
-                <td>
-                    <button class="btn btn-warning btn-sm btn-edit-inscription"
-                        data-id="${d.id_inscription}"
-                        data-statut="${d.statut_inscription}"
-                        data-centre="${d.centre.id_centre}">
-                        <i class="fa fa-edit"></i>
-                    </button>
-                </td>
+            <td>
+                ${d.concours?.categorie?.libelle || "-"}
+            </td>
 
-                <td>
+            <td>
+                ${d.centre?.nom || "-"}
+            </td>
 
-                    <button
-                        class="btn btn-danger btn-sm btn-delete-inscription"
-                        data-id="${d.id_inscription}">
-                        <i class="fa fa-trash"></i>
-                    </button>
+            <td>
+                ${diplomesHTML}
+            </td>
 
-                </td>
-            </tr>
-        `;
+            <td>
+                ${d.statut_inscription || "-"}
+            </td>
+
+            <td>
+                ${d.date_inscription
+                    ? new Date(d.date_inscription).toLocaleDateString()
+                    : "-"
+                }
+            </td>
+
+            <td>
+                <button
+                    class="btn btn-warning btn-sm btn-edit-inscription"
+                    data-id="${d.id_inscription}"
+                    data-statut="${d.statut_inscription}"
+                    data-centre="${d.centre?.id_centre || ""}">
+                    <i class="fa fa-edit"></i>
+                </button>
+            </td>
+
+            <td>
+                <button
+                    class="btn btn-danger btn-sm btn-delete-inscription"
+                    data-id="${d.id_inscription}">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `;
         }).join("");
+
+
 
         document.getElementById("detailContent").innerHTML = `
         <div class="row">
@@ -380,6 +600,7 @@ export default class InscriptionController {
                     <th>Concours</th>
                     <th>Catégorie</th>
                     <th>Centre</th>
+                    <th>Diplôme</th>
                     <th>Statut</th>
                     <th>Date</th>
                     <th>Modifier</th>

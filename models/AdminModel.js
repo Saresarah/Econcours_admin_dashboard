@@ -64,6 +64,7 @@ export default class AdminModel {
         });
 
         const result = await res.json();
+        console.log("RESULT API ADMINS :", result);
 
         return {
             ok: res.ok,
@@ -144,6 +145,38 @@ export default class AdminModel {
         );
 
         const result = await res.json();
+
+        return {
+            ok: res.ok,
+            data: result
+        };
+    }
+
+    static async importExcel(token, type, file) {
+
+        const formData = new FormData();
+
+        formData.append("type", type);
+        formData.append("file", file);
+
+        console.log("IMPORT EXCEL :", {
+            type,
+            fichier: file.name,
+            format: file.type,
+            taille: file.size
+        });
+
+        const res = await fetch(`${API_URL}/create-client`, {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token
+            },
+            body: formData
+        });
+
+        const result = await res.json();
+
+        console.log("RÉPONSE IMPORT :", result);
 
         return {
             ok: res.ok,

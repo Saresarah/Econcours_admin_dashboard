@@ -25,7 +25,7 @@
     <link href="../vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.dataTables.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.5/css/buttons.dataTables.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> -->
     <?php include("inclusions_haut.php") ?>
 </head>
 
@@ -50,27 +50,31 @@
                     <div class="header">
                         <div class="container-fluid">
                             <div class="header-body">
-                                <div class="row align-items-center py-4">
-                                    <div class="col-lg-6 col-7">
-                                        <!-- <h6 class="h2 text-white d-inline-block mb-0">Utilisateur</h6> -->
-                                        <!-- <nav aria-label="breadcrumb" class="d-none d-md-inline-block ml-md-4">
-                                        <ol class="breadcrumb breadcrumb-links breadcrumb-dark">
-                                            <li class="breadcrumb-item"><a href="index.php"><i class="fas fa-home"></i></a></li>
-                                            <li class="breadcrumb-item"><a href="index.php">BIMMO-2 ADMIN</a></li>
-                                            <li class="breadcrumb-item active" aria-current="page">Gestion des utilisateurs</li>
-                                        </ol>
-                                    </nav> -->
-                                    </div>
-                                    <div class="col-lg-6 col-5 text-right">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                                    <div class="d-flex gap-2">
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            data-toggle="modal"
+                                            data-target="#ajouter_candidat">
+                                            <i class="fa-solid fa-plus"></i>
+                                            Ajouter un candidat
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-success btn-upload-liste"
+                                            data-type="candidat"
+                                            data-toggle="modal"
+                                            data-target="#modalUploadListe">
+                                            <i class="fa-solid fa-file-excel"></i>
+                                            Importer une liste
+                                        </button>
 
                                     </div>
-                                    <div class="text-left">
-                                        <div class="col-md-12">
-                                            <button type="button" class="btn btn-primary" data-toggle="modal"
-                                                data-target="#ajouter_candidat">Ajouter un candidat <i
-                                                    class="fa  fa-plus "></i></button>
-                                        </div>
-                                    </div>
+
                                 </div>
 
                             </div>
@@ -112,7 +116,7 @@
                                         </thead>
                                         <tfoot>
                                             <tr>
-                                                <th class="text-center">N°</th>
+                                                <th class="text-center">N</th>
                                                 <th class="text-center">Nom</th>
                                                 <th class="text-center">Prénom(s)</th>
                                                 <!-- <th class="text-center">Nom de jeune fille</th> -->
@@ -187,21 +191,24 @@
 
     <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.print.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <?php include('modals/modal_candidat.php'); ?>
     <?php include('modals/modal_detail.php'); ?>
+    <?php include('modals/modal_admin.php'); ?>
+
 
     <script type="module">
         import CandidatController from "../Controllers/CandidatController.js";
         import AdminController from "../Controllers/AdminController.js";
         document.addEventListener("DOMContentLoaded", () => {
 
-        const token = AdminController.checkAuth();
+            const token = AdminController.checkAuth();
 
             if (!token) {
                 return;
             }
-            
+
             CandidatController.initDataTable();
             CandidatController.registerCandidat();
             CandidatController.initDeleteButtons();
@@ -209,6 +216,7 @@
             CandidatController.initEditSubmit();
             CandidatController.initDetails();
             AdminController.initLogout();
+            AdminController.initImportListe();
         });
     </script>
 

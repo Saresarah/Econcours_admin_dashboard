@@ -47,99 +47,119 @@
                 <div class="container-fluid">
 
                     <!-- HEADER -->
-                    <div class=" align-items-center justify-content-between mb-4">
+                    <div class="header">
+                        <div class="container-fluid">
+                            <div class="header-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
 
-                        <button
-                            type="button"
-                            class="btn btn-primary shadow-sm"
-                            data-toggle="modal"
-                            data-target="#ajouter_concours">
+                                    <div class="d-flex gap-2">
 
-                            <i class="fas fa-plus fa-sm text-white-50"></i>
-                            Ajouter un concours
-                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-primary"
+                                            data-toggle="modal"
+                                            data-target="#ajouter_concours">
+                                            <i class="fa-solid fa-plus"></i>
+                                            Ajouter un concours
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn-success btn-upload-liste"
+                                            data-type="concours"
+                                            data-toggle="modal"
+                                            data-target="#modalUploadListe">
+                                            <i class="fa-solid fa-file-excel"></i>
+                                            Importer une liste
+                                        </button>
 
-                    </div>
+                                    </div>
 
-                    <!-- TABLE -->
-                    <div class="card shadow mb-4">
+                                </div>
 
-                        <div class="card-header py-3">
-                            <h3 class="mb-0 ">
-                                Liste des concours
-                            </h3>
+                            </div>
                         </div>
 
-                        <div class="card-body">
+                        <!-- TABLE -->
+                        <div class="card shadow mb-4">
 
-                            <div class="table-responsive">
+                            <div class="card-header py-3">
+                                <h3 class="mb-0 ">
+                                    Liste des concours
+                                </h3>
+                            </div>
 
-                                <table
-                                    class="table table-bordered table-striped"
-                                    id="dataTable"
-                                    width="100%"
-                                    cellspacing="0">
+                            <div class="card-body">
 
-                                    <thead class="thead-light">
+                                <div class="table-responsive">
 
-                                        <tr>
+                                    <table
+                                        class="table table-bordered table-striped"
+                                        id="dataTable"
+                                        width="100%"
+                                        cellspacing="0">
 
-                                            <th class="text-center">N°</th>
+                                        <thead class="thead-light">
 
-                                            <th class="text-center">
-                                                Nom
-                                            </th>
+                                            <tr>
 
-                                            <th class="text-center">
-                                                Type
-                                            </th>
+                                                <th class="text-center">N°</th>
 
-                                            <th class="text-center">
-                                                Catégorie
-                                            </th>
+                                                <th class="text-center">
+                                                    Nom
+                                                </th>
 
-                                            <th class="text-center">
-                                                Postes
-                                            </th>
+                                                <th class="text-center">
+                                                    Type
+                                                </th>
 
-                                            <th class="text-center">
-                                                Début
-                                            </th>
+                                                <th class="text-center">
+                                                    Catégorie
+                                                </th>
 
-                                            <th class="text-center">
-                                                Fin
-                                            </th>
+                                                <th class="text-center">
+                                                    Postes
+                                                </th>
 
-                                            <th class="text-center">
-                                                Statut
-                                            </th>
+                                                <th class="text-center">
+                                                    Début
+                                                </th>
 
-                                            <th class="text-center">
-                                                Modifier
-                                            </th>
+                                                <th class="text-center">
+                                                    Fin
+                                                </th>
 
-                                            <th class="text-center">
-                                                Supprimer
-                                            </th>
+                                                <th class="text-center">
+                                                    Statut
+                                                </th>
 
-                                            <th class="text-center">
-                                                Voir la liste des candidats
-                                            </th>
+                                                <th class="text-center">
+                                                    Modifier
+                                                </th>
 
-                                            <th class="text-center">
-                                                Voir la liste des examens
-                                            </th>
+                                                <th class="text-center">
+                                                    Supprimer
+                                                </th>
+
+                                                <th class="text-center">
+                                                    Voir la liste des candidats
+                                                </th>
+
+                                                <th class="text-center">
+                                                    Voir la liste des examens
+                                                </th>
 
 
-                                        </tr>
+                                            </tr>
 
-                                    </thead>
+                                        </thead>
 
-                                    <tbody id="concoursTableBody">
+                                        <tbody id="concoursTableBody">
 
-                                    </tbody>
+                                        </tbody>
 
-                                </table>
+                                    </table>
+
+                                </div>
 
                             </div>
 
@@ -149,72 +169,72 @@
 
                 </div>
 
-            </div>
+                <!-- Footer -->
+                <?php include("footer.php") ?>
 
-            <!-- Footer -->
-            <?php include("footer.php") ?>
+            </div>
 
         </div>
 
-    </div>
+        <!-- Scroll -->
+        <a class="scroll-to-top rounded" href="#page-top">
+            <i class="fas fa-angle-up"></i>
+        </a>
 
-    <!-- Scroll -->
-    <a class="scroll-to-top rounded" href="#page-top">
-        <i class="fas fa-angle-up"></i>
-    </a>
+        <!-- JS -->
+        <script src="../vendor/jquery/jquery.min.js"></script>
 
-    <!-- JS -->
-    <script src="../vendor/jquery/jquery.min.js"></script>
+        <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 
-    <script src="../vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+        <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
 
-    <script src="../vendor/jquery-easing/jquery.easing.min.js"></script>
+        <script src="../js/sb-admin-2.min.js"></script>
 
-    <script src="../js/sb-admin-2.min.js"></script>
+        <!-- DataTables -->
+        <script src="../vendor/datatables/jquery.dataTables.min.js"></script>
 
-    <!-- DataTables -->
-    <script src="../vendor/datatables/jquery.dataTables.min.js"></script>
-
-    <script src="../vendor/datatables/dataTables.bootstrap4.min.js"></script>
+        <script src="../vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
 
 
-    <script src="https://cdn.datatables.net/2.3.2/js/dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.2.5/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/2.3.2/js/dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/3.2.5/js/dataTables.buttons.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
-    <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.print.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.html5.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.print.min.js"></script>
 
-    <!-- CONTROLLER -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script type="module">
-        import ConcoursController from "../Controllers/ConcoursController.js";
-        import AdminController from "../Controllers/AdminController.js";
-        document.addEventListener("DOMContentLoaded", async () => {
-            // ConcoursController.getAll();
-            const token = AdminController.checkAuth();
+        <?php include("modals/modal_concours.php"); ?>
+        <?php include('modals/modal_admin.php'); ?>
 
-            if (!token) {
-                return;
-            }
-            ConcoursController.initDataTable();
-            ConcoursController.initCreateConcours();
-            ConcoursController.initEditConcours();
-            ConcoursController.initDeleteConcours();
-            ConcoursController.initSwitchStatus();
-            ConcoursController.loadSelects();
-            ConcoursController.initSelect2();
-            AdminController.initLogout();
+        <!-- CONTROLLER -->
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script type="module">
+            import ConcoursController from "../Controllers/ConcoursController.js";
+            import AdminController from "../Controllers/AdminController.js";
+            document.addEventListener("DOMContentLoaded", async () => {
+                // ConcoursController.getAll();
+                const token = AdminController.checkAuth();
 
-        });
-    </script>
+                if (!token) {
+                    return;
+                }
+                ConcoursController.initDataTable();
+                ConcoursController.initCreateConcours();
+                ConcoursController.initEditConcours();
+                ConcoursController.initDeleteConcours();
+                ConcoursController.initSwitchStatus();
+                ConcoursController.loadSelects();
+                ConcoursController.initSelect2();
+                AdminController.initImportListe();
+                AdminController.initLogout();
 
-    <!-- Modal -->
-    <?php include("modals/modal_concours.php"); ?>
+            });
+        </script>
+
 
 </body>
 

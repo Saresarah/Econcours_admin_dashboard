@@ -16,228 +16,243 @@ export default class ExamenController {
 
         this.getAll();
 
+        this.initDataTable();
+
         this.initEditExamen();
 
         this.initDeleteExamen();
 
-        this.initDataTable();
 
     }
 
-
-    // =========================================
-    // GET ALL EXAMENS
-    // =========================================
-
-    // static async getAll() {
-
-    //     const token = AdminController.getToken();
-
-    //     if (!token) {
-
-    //         console.warn("Aucun token administrateur");
-
-    //         return [];
-
-    //     }
-
-    //     const res = await ExamenModel.getAllExamens(token);
-
-    //     if (!res.ok) {
-
-    //         console.error(
-    //             res.data?.error || "Erreur chargement examens"
-    //         );
-
-    //         Swal.fire({
-    //             icon: "error",
-    //             title: "Erreur",
-    //             text: res.data?.error || "Impossible de charger les examens"
-    //         });
-
-    //         return [];
-
-    //     }
-
-    //     return res.data;
-
-    // }
-
-    static async getAll() {
+    static async getAll(page = 1, limit = 10) {
 
         const token = AdminController.getToken();
 
         if (!token) {
             console.warn("Aucun token administrateur");
-            return [];
+            return {
+                page: 1,
+                limit: 10,
+                total: 0,
+                totalPages: 0,
+                examen: []
+            };
         }
 
-        const res = await ExamenModel.getAllExamens(token);
+        const res =
+            await ExamenModel.getAllExamens(
+                token,
+                page,
+                limit
+            );
 
-        console.log("Réponse API examens :", res);
-        console.log("res.ok :", res.ok);
-        console.log("res.data :", res.data);
-        console.log("Type res.data :", typeof res.data);
-        console.log("Est un tableau :", Array.isArray(res.data));
+        console.log(
+            "Réponse API examens :",
+            res
+        );
+
+        console.log(
+            "res.data :",
+            res.data
+        );
 
         if (!res.ok) {
 
             console.error(
-                res.data?.error || "Erreur chargement examens"
+                res.data?.error ||
+                "Erreur chargement examens"
             );
 
             Swal.fire({
                 icon: "error",
                 title: "Erreur",
-                text: res.data?.error || "Impossible de charger les examens"
+                text:
+                    res.data?.error ||
+                    "Impossible de charger les examens"
             });
 
-            return [];
+            return {
+                page: 1,
+                limit: 10,
+                total: 0,
+                totalPages: 0,
+                examen: []
+            };
         }
 
         return res.data;
     }
 
-    // =========================================
-    // DATATABLE
-    // =========================================
 
     static async initDataTable() {
 
-        console.log("INITIALISATION DATATABLE EXAMENS");
+        console.log(
+            "INITIALISATION DATATABLE EXAMENS"
+        );
 
-        const tbody = document.getElementById("examenTableBody");
-
-        if (!tbody) {
-
-            console.error("tbody examens introuvable");
-
-            return;
-
-        }
-
-        const examens = await this.getAll();
-
-        // Backend : { data: examens }
-        // const examens = response.data || [];
-
-        console.log("LISTE EXAMENS :", examens);
-
-        // Détruire l'ancienne DataTable
         if ($.fn.DataTable.isDataTable("#dataTable")) {
-
-            $("#dataTable").DataTable().destroy();
-
+            $("#dataTable")
+                .DataTable()
+                .destroy();
         }
 
-
-        // Vider le tableau
-        tbody.innerHTML = "";
-
-
-        examens.forEach((item, index) => {
-
-            const date = item.date_examen
-                ? item.date_examen.split("T")[0]
-                : "-";
-
-
-            // Formatage heure
-            let heure = "-";
-
-            if (item.heure) {
-
-                const dateHeure = new Date(item.heure);
-
-                heure = dateHeure.toLocaleTimeString(
-                    "fr-FR",
-                    {
-                        hour: "2-digit",
-                        minute: "2-digit"
-                    }
-                );
-
-            }
-
-
-            tbody.innerHTML += `
-
-            <tr>
-
-                <td class="text-center">
-                    ${index + 1}
-                </td>
-
-                <td class="text-center">
-                    ${date}
-                </td>
-
-                <td class="text-center">
-                    ${heure}
-                </td>
-
-                <td class="text-center">
-                    ${item.lieu || "-"}
-                </td>
-
-                <td class="text-center">
-                    ${item.coefficient ?? "-"}
-                </td>
-
-                <td class="text-center">
-                    ${item.intitule || "-"}
-                </td>
-
-                <td class="text-center">
-                    ${item.type_examen || "-"}
-                </td>
-
-                <td class="text-center">
-
-                   <button
-                        class="btn btn-warning btn-sm btn-edit-examen"
-                        data-id="${item.id_examen}"
-                        data-intitule="${item.intitule || ""}"
-                        data-type="${item.type_examen || ""}"
-                        data-coefficient="${item.coefficient || ""}"
-                        data-date="${item.date_examen?.split("T")[0] || ""}"
-                        data-heure="${item.heure ? item.heure.substring(11, 16) : ""}"
-                        data-lieu="${item.lieu || ""}">
-                        
-                        <i class="fa fa-edit"></i>
-                    </button>
-
-                </td>
-
-                <td class="text-center">
-
-                    <button
-                        class="btn btn-danger btn-sm btn-delete-examen"
-                        data-id="${item.id_examen}"
-                        title="Supprimer">
-
-                        <i class="fa fa-trash"></i>
-
-                    </button>
-                </td>
-
-            </tr>
-
-        `;
-
-        });
-
-
-        // Initialiser DataTable
         $("#dataTable").DataTable({
+
+            processing: true,
+            serverSide: true,
+
+            ajax: async function (data, callback) {
+
+                try {
+
+                    const token =
+                        AdminController.getToken();
+
+                    const start = data.start;
+                    const length = data.length;
+
+                    const page =
+                        Math.floor(start / length) + 1;
+
+                    const res =
+                        await ExamenModel.getAllExamens(
+                            token,
+                            page,
+                            length
+                        );
+
+                    console.log(
+                        "REPONSE DATATABLE EXAMENS :",
+                        res
+                    );
+
+                    if (!res.ok) {
+
+                        callback({
+                            draw: data.draw,
+                            recordsTotal: 0,
+                            recordsFiltered: 0,
+                            data: []
+                        });
+
+                        return;
+                    }
+
+                    const result = res.data;
+
+                    const examens =
+                        Array.isArray(result?.data)
+                            ? result.data
+                            : [];
+
+                    console.log(
+                        "EXAMENS RECUS :",
+                        examens
+                    );
+
+                    callback({
+
+                        draw: data.draw,
+
+                        recordsTotal:
+                            result?.total || 0,
+
+                        recordsFiltered:
+                            result?.total || 0,
+
+                        data: examens.map(
+                            (item, index) => {
+
+                                const date =
+                                    item.date_examen
+                                        ? item.date_examen
+                                            .split("T")[0]
+                                        : "-";
+
+                                let heure = "-";
+
+                                if (item.heure) {
+
+                                    const dateHeure =
+                                        new Date(
+                                            item.heure
+                                        );
+
+                                    heure =
+                                        dateHeure.toLocaleTimeString(
+                                            "fr-FR",
+                                            {
+                                                hour: "2-digit",
+                                                minute: "2-digit"
+                                            }
+                                        );
+                                }
+
+                                return [
+                                    start + index + 1,
+
+                                    date,
+
+                                    heure,
+
+                                    item.lieu || "-",
+
+                                    item.intitule || "-",
+
+                                    item.type_examen || "-",
+
+                                    `
+                                <button
+                                    class="btn btn-warning btn-sm btn-edit-examen"
+                                    data-id="${item.id_examen}"
+                                    data-intitule="${item.intitule || ""}"
+                                    data-type="${item.type_examen || ""}"
+                                    data-coefficient="${item.coefficient || ""}"
+                                    data-date="${item.date_examen ? item.date_examen.split("T")[0] : ""}"
+                                    data-heure="${item.heure ? item.heure.substring(11, 16) : ""}"
+                                    data-lieu="${item.lieu || ""}">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                                `,
+
+                                    `
+                                <button
+                                    class="btn btn-danger btn-sm btn-delete-examen"
+                                    data-id="${item.id_examen}"
+                                    title="Supprimer">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                                `
+                                ];
+                            }
+                        )
+                    });
+
+                } catch (error) {
+
+                    console.error(
+                        "ERREUR DATATABLE EXAMENS :",
+                        error
+                    );
+
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: []
+                    });
+                }
+            },
 
             responsive: true,
 
-            paging: true,
-
             pageLength: 10,
 
-            lengthMenu: [10, 25, 50, 100],
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
 
             searching: true,
 
@@ -246,27 +261,31 @@ export default class ExamenController {
             info: true,
 
             language: {
-                url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
+                url:
+                    "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
 
             layout: {
                 topStart: [
-                    'pageLength',
+                    "pageLength",
                     {
-                        buttons: ['copy', 'excel', 'csv', 'pdf']
+                        buttons: [
+                            "copy",
+                            "excel",
+                            "csv",
+                            "pdf"
+                        ]
                     }
                 ],
-                topEnd: 'search',
 
-                bottomStart: 'info',
-                bottomEnd: 'paging'
+                topEnd: "search",
+
+                bottomStart: "info",
+
+                bottomEnd: "paging"
             }
-
         });
-
     }
-
-
     // =========================================
     // CHARGER LES CONCOURS
     // =========================================
@@ -324,8 +343,8 @@ export default class ExamenController {
             const type_examen =
                 document.getElementById("type_examen").value;
 
-            const coefficient =
-                document.getElementById("coefficient").value;
+            // const coefficient =
+            //     document.getElementById("coefficient").value;
 
             const date_examen =
                 document.getElementById("date_examen").value;
@@ -343,7 +362,7 @@ export default class ExamenController {
             // Vérification
             console.log("INTITULE :", intitule);
             console.log("TYPE :", type_examen);
-            console.log("COEFFICIENT :", coefficient);
+            // console.log("COEFFICIENT :", coefficient);
             console.log("DATE :", date_examen);
             console.log("HEURE :", heure);
             console.log("LIEU :", lieu);
@@ -354,7 +373,7 @@ export default class ExamenController {
             if (
                 !intitule ||
                 !type_examen ||
-                !coefficient ||
+                // !coefficient ||
                 !date_examen ||
                 !heure ||
                 !lieu ||
@@ -467,8 +486,8 @@ export default class ExamenController {
             document.getElementById("type_examen_modif").value =
                 btn.dataset.type || "";
 
-            document.getElementById("coefficient_modif").value =
-                btn.dataset.coefficient || "";
+            // document.getElementById("coefficient_modif").value =
+            //     btn.dataset.coefficient || "";
 
             document.getElementById("date_examen_modif").value =
                 btn.dataset.date || "";
@@ -497,8 +516,8 @@ export default class ExamenController {
             const type_examen =
                 document.getElementById("type_examen_modif").value;
 
-            const coefficient =
-                document.getElementById("coefficient_modif").value;
+            // const coefficient =
+            //     document.getElementById("coefficient_modif").value;
 
             const date_examen =
                 document.getElementById("date_examen_modif").value;
@@ -514,7 +533,7 @@ export default class ExamenController {
                 !id_examen ||
                 !intitule ||
                 !type_examen ||
-                !coefficient ||
+                // !coefficient ||
                 !date_examen ||
                 !heure ||
                 !lieu
@@ -536,7 +555,7 @@ export default class ExamenController {
 
                 type_examen,
 
-                coefficient: Number(coefficient),
+                // coefficient: Number(coefficient),
 
                 date_examen,
 
