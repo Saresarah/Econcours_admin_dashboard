@@ -120,11 +120,6 @@ export default class ExamenController {
 
             ajax: async function (data, callback) {
 
-                console.log(
-                    "1️⃣ DATATABLE → REQUÊTE EXAMENS :",
-                    data
-                );
-
                 try {
 
                     const params = {
@@ -143,22 +138,12 @@ export default class ExamenController {
 
                         orderDir:
                             data.order?.[0]?.dir ?? "asc"
-                    };
-
-                    console.log(
-                        "2️⃣ PARAMÈTRES EXAMENS :",
-                        params
-                    );
+                    }
 
                     const result =
                         await ExamenController.getAll(
                             params
                         );
-
-                    console.log(
-                        "3️⃣ RÉPONSE CONTROLLER EXAMENS :",
-                        result
-                    );
 
                     const examens =
                         Array.isArray(result?.data)
@@ -166,11 +151,6 @@ export default class ExamenController {
                             : Object.values(
                                 result?.data || {}
                             );
-
-                    console.log(
-                        "4️⃣ EXAMENS REÇUS :",
-                        examens
-                    );
 
                     const rows =
                         examens.map(
@@ -250,11 +230,6 @@ export default class ExamenController {
                             }
                         );
 
-                    console.log(
-                        "5️⃣ LIGNES DATATABLE EXAMENS :",
-                        rows
-                    );
-
                     callback({
 
                         draw: data.draw,
@@ -268,16 +243,8 @@ export default class ExamenController {
                         data: rows
                     });
 
-                    console.log(
-                        "6️⃣ CALLBACK EXAMENS APPELÉ"
-                    );
 
                 } catch (error) {
-
-                    console.error(
-                        "❌ ERREUR DATATABLE EXAMENS :",
-                        error
-                    );
 
                     callback({
 
@@ -348,23 +315,37 @@ export default class ExamenController {
             },
 
             layout: {
-
                 topStart: [
                     "pageLength",
                     {
                         buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
+                           
+                            {
+                                text: '<i class="fa fa-file-excel"></i> Excel',
+                                className: "btn-export-excel",
+                                action: async function () {
+                                    await ExamenController.exportExcel();
+                                }
+                            },
+                            {
+                                text: '<i class="fa fa-file-word"></i> Word',
+                                className: "btn-export-word",
+                                action: async function () {
+                                    await ExamenController.exportWord();
+                                }
+                            },
+                            {
+                                text: '<i class="fa fa-file-pdf"></i> PDF',
+                                className: "btn-export-pdf",
+                                action: async function () {
+                                    await ExamenController.exportPDF();
+                                }
+                            }
                         ]
                     }
                 ],
-
                 topEnd: "search",
-
                 bottomStart: "info",
-
                 bottomEnd: "paging"
             }
         });
@@ -797,4 +778,114 @@ export default class ExamenController {
 
     }
 
+    static async downloadExport(type) {
+        const token = AdminController.getToken();
+
+        if (!token) {
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text: "Veuillez vous reconnecter."
+            });
+
+            return;
+        }
+
+        try {
+            Swal.fire({
+                title: "Export en cours...",
+                text: `Préparation du fichier ${type.toUpperCase()}.`,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            let res;
+            let extension;
+
+            switch (type) {
+                case "excel":
+                    res = await ExamenModel.exportExcel(token);
+                    extension = "xlsx";
+                    break;
+
+                case "word":
+                    res = await ExamenModel.exportWord(token);
+                    extension = "docx";
+                    break;
+
+                case "pdf":
+                    res = await ExamenModel.exportPDF(token);
+                    extension = "pdf";
+                    break;
+            }
+
+            if (!res.ok) {
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: `Impossible d'exporter les examens en ${type.toUpperCase()}.`
+                });
+
+                return;
+            }
+
+            const url = window.URL.createObjectURL(
+                res.blob
+            );
+
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download =
+                `examens_${new Date().toISOString().slice(0, 10)}.${extension}`;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Export terminé",
+                text: `Tous les examens ont été exportés en ${type.toUpperCase()}.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error(
+                `Erreur export ${type} examens :`,
+                error
+            );
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Une erreur est survenue pendant l'export."
+            });
+        }
+    }
+
+    static async exportExcel() {
+        await this.downloadExport("excel");
+    }
+
+    static async exportWord() {
+        await this.downloadExport("word");
+    }
+
+    static async exportPDF() {
+        await this.downloadExport("pdf");
+    }
 }

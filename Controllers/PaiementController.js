@@ -3,98 +3,7 @@ import AdminController from "./AdminController.js";
 
 export default class PaiementController {
 
-    // static async loadPaiementsByCandidat() {
 
-    //     const token = AdminController.getToken();
-
-    //     const res = await PaiementModel.getPaiementByCandidat(token);
-
-    //     const tbody = document.querySelector("#paiementTable tbody");
-
-    //     tbody.innerHTML = "";
-
-    //     const data = Object.values(res.data.data);
-    //     console.log(res.data.data);
-
-    //     data.forEach((item, index) => {
-    //         console.log(item);
-
-    //         const total = item.paiements.reduce(
-    //             (sum, p) => sum + Number(p.montant),
-    //             0
-    //         );
-
-    //         const preview = item.paiements.slice(0, 2).map(p => `
-    //         <div>
-    //             <b>${p.inscription.concours.nom}</b>
-    //             - ${p.montant} FCFA
-    //         </div>
-    //     `).join("");
-
-    //         tbody.innerHTML += `
-    //         <tr>
-
-    //             <td class="text-center">${index + 1}</td>
-
-    //             <td class="text-center">
-    //                 ${item.candidat.nom} ${item.candidat.prenom}
-    //             </td>
-
-    //             <td class="text-center">
-    //                 ${preview}
-
-    //                 ${item.paiements.length > 2
-    //                 ? `<span class="badge badge-info">
-    //                           +${item.paiements.length - 2} autres
-    //                        </span>`
-    //                 : ""
-    //             }
-    //             </td>
-
-    //             <td class="text-center">
-    //                 <strong>${total.toLocaleString()} FCFA</strong>
-    //             </td>
-
-    //             <td class="text-center">
-    //                 <button class="btn btn-info btn-sm btn-detail-paiement"
-    //                     data-id="${item.candidat.id_candidat}">
-    //                     <i class="fa fa-eye"></i>
-    //                 </button>
-    //             </td>
-
-    //         </tr>
-    //     `;
-    //     });
-
-    //     this.initPaiementDataTable();
-
-    // }
-
-    // static initPaiementDataTable() {
-
-    //     if ($.fn.DataTable.isDataTable("#paiementTable")) {
-    //         $("#paiementTable").DataTable().destroy();
-    //     }
-
-    //     $("#paiementTable").DataTable({
-    //         language: {
-    //             url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
-    //         },
-
-    //         layout: {
-    //             topStart: [
-    //                 'pageLength',
-    //                 {
-    //                     buttons: ['copy', 'excel', 'csv', 'pdf']
-    //                 }
-    //             ],
-    //             topEnd: 'search',
-
-    //             bottomStart: 'info',
-    //             bottomEnd: 'paging'
-    //         }
-    //     });
-    // }
 
     static async getAll(params) {
 
@@ -148,9 +57,6 @@ export default class PaiementController {
 
     static loadPaiementsByCandidat() {
 
-        console.log(
-            "INITIALISATION DATATABLE PAIEMENTS"
-        );
 
         this.initPaiementDataTable();
     }
@@ -191,10 +97,6 @@ export default class PaiementController {
 
             ajax: async function (data, callback) {
 
-                console.log(
-                    "1️⃣ DATATABLE → REQUÊTE PAIEMENTS :",
-                    data
-                );
 
                 try {
 
@@ -216,30 +118,15 @@ export default class PaiementController {
                             data.order?.[0]?.dir ?? "desc"
                     };
 
-                    console.log(
-                        "2️⃣ PARAMÈTRES PAIEMENTS :",
-                        params
-                    );
-
                     const result =
                         await PaiementController.getAll(
                             params
                         );
 
-                    console.log(
-                        "3️⃣ RÉPONSE CONTROLLER PAIEMENTS :",
-                        result
-                    );
-
                     const paiements =
                         Array.isArray(result?.data)
                             ? result.data
                             : [];
-
-                    console.log(
-                        "4️⃣ PAIEMENTS REÇUS :",
-                        paiements
-                    );
 
                     const rows =
                         paiements.map(
@@ -299,11 +186,6 @@ export default class PaiementController {
                             }
                         );
 
-                    console.log(
-                        "5️⃣ LIGNES DATATABLE PAIEMENTS :",
-                        rows
-                    );
-
                     callback({
 
                         draw: data.draw,
@@ -317,16 +199,7 @@ export default class PaiementController {
                         data: rows
                     });
 
-                    console.log(
-                        "6️⃣ CALLBACK PAIEMENTS APPELÉ"
-                    );
-
                 } catch (error) {
-
-                    console.error(
-                        "❌ ERREUR DATATABLE PAIEMENTS :",
-                        error
-                    );
 
                     callback({
 
@@ -393,17 +266,34 @@ export default class PaiementController {
                 url:
                     "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
-
             layout: {
-
                 topStart: [
                     "pageLength",
                     {
                         buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
+                            {
+                                text: '<i class="fa fa-file-excel"></i> Excel',
+                                className: "btn-export-excel",
+                                action: async function () {
+                                    await PaiementController.exportExcel();
+                                }
+                            },
+
+                            {
+                                text: '<i class="fa fa-file-word"></i> Word',
+                                className: "btn-export-word",
+                                action: async function () {
+                                    await PaiementController.exportWord();
+                                }
+                            },
+
+                            {
+                                text: '<i class="fa fa-file-pdf"></i> PDF',
+                                className: "btn-export-pdf",
+                                action: async function () {
+                                    await PaiementController.exportPDF();
+                                }
+                            }
                         ]
                     }
                 ],
@@ -414,6 +304,8 @@ export default class PaiementController {
 
                 bottomEnd: "paging"
             }
+
+
         });
     }
 
@@ -589,5 +481,133 @@ export default class PaiementController {
         });
 
     }
+
+    static async downloadExport(type) {
+        const token = AdminController.getToken();
+
+        if (!token) {
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text: "Veuillez vous reconnecter."
+            });
+
+            return;
+        }
+
+        try {
+            const filters = {
+                statut_paiement:
+                    document.getElementById("filterStatutPaiement")?.value || "",
+
+                mode_paiement:
+                    document.getElementById("filterModePaiement")?.value || ""
+            };
+
+            Swal.fire({
+                title: "Export en cours...",
+                text: `Préparation du fichier ${type.toUpperCase()}.`,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            let res;
+            let extension;
+
+            switch (type) {
+                case "excel":
+                    res = await PaiementModel.exportExcel(token, filters);
+                    extension = "xlsx";
+                    break;
+
+                case "word":
+                    res = await PaiementModel.exportWord(token, filters);
+                    extension = "docx";
+                    break;
+
+                case "pdf":
+                    res = await PaiementModel.exportPDF(token, filters);
+                    extension = "pdf";
+                    break;
+
+                default:
+                    Swal.close();
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erreur",
+                        text: "Type d'export invalide."
+                    });
+
+                    return;
+            }
+
+            if (!res.ok) {
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: `Impossible d'exporter les paiements en ${type.toUpperCase()}.`
+                });
+
+                return;
+            }
+
+            const url = window.URL.createObjectURL(res.blob);
+
+            const link = document.createElement("a");
+
+            link.href = url;
+
+            link.download =
+                `paiements_${new Date().toISOString().slice(0, 10)}.${extension}`;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Export terminé",
+                text: `Les paiements ont été exportés en ${type.toUpperCase()}.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error(`Erreur export ${type} paiements :`, error);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Une erreur est survenue pendant l'export."
+            });
+        }
+    }
+
+    static async exportExcel() {
+        await this.downloadExport("excel");
+    }
+
+    static async exportWord() {
+        await this.downloadExport("word");
+    }
+
+    static async exportPDF() {
+        await this.downloadExport("pdf");
+    }
+
+
 
 }

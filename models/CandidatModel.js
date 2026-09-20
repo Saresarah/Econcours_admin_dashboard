@@ -203,4 +203,102 @@ export default class CandidatModel {
         };
     }
 
+    static async exportExcel(token) {
+
+        const url =
+            `${API_URL}/candidats/export/excel`;
+
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (!res.ok) {
+
+            const errorText =
+                await res.text();
+
+            console.error(
+                "Erreur export candidats :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        const blob =
+            await res.blob();
+
+        return {
+            ok: true,
+            blob
+        };
+    }
+
+    static async exportWord(token) {
+
+        const url =
+            `${API_URL}/candidats/export/word`;
+
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (!res.ok) {
+
+            const errorText =
+                await res.text();
+
+            console.error(
+                "Erreur export Word :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        const blob =
+            await res.blob();
+
+        return {
+            ok: true,
+            blob
+        };
+    }
+
+    static async exportPDF(token) {
+        const url = `${API_URL}/candidats/export/pdf`;
+
+        const res = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Erreur export PDF :", errorText);
+
+            return {
+                ok: false
+            };
+        }
+
+        const blob = await res.blob();
+
+        return {
+            ok: true,
+            blob
+        };
+    }
 }

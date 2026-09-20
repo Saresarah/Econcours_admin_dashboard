@@ -131,57 +131,14 @@ export default class ResultatController {
             ordering: true,
 
             info: true,
-
             ajax: async function (data, callback) {
 
                 try {
 
-                    const token =
-                        AdminController.getToken();
+                    const token = AdminController.getToken();
 
-                    const start =
-                        data.start || 0;
-
-                    const length =
-                        data.length || 10;
-
-                    const page =
-                        Math.floor(start / length) + 1;
-
-                    console.log(
-                        "PAGE DEMANDEE :",
-                        page
-                    );
-
-                    console.log(
-                        "LIMIT :",
-                        length
-                    );
-
-                    const result =
-                        await ResultatController.getAll(
-                            page,
-                            length
-                        );
-
-                    console.log(
-                        "1. REPONSE RESULTAT CONTROLLER :",
-                        result
-                    );
-
-                    const resultats =
-                        result.data || [];
-
-                    console.log(
-                        "2. RESULTATS EXTRAITS :",
-                        resultats
-                    );
-
-                    if (!resultats.length) {
-
-                        console.warn(
-                            "AUCUN RESULTAT"
-                        );
+                    if (!token) {
+                        console.error("Aucun token administrateur");
 
                         callback({
                             draw: data.draw,
@@ -193,35 +150,75 @@ export default class ResultatController {
                         return;
                     }
 
+                    const start = data.start || 0;
+                    const length = data.length || 10;
+
+                    const page =
+                        Math.floor(start / length) + 1;
+
+                    console.log("PAGE DEMANDEE :", page);
+                    console.log("LIMIT :", length);
+
+                    const result =
+                        await ResultatController.getAll(
+                            page,
+                            length
+                        );
+
+                    console.log(
+                        "REPONSE RESULTAT CONTROLLER :",
+                        result
+                    );
+
+                    const resultats = Array.isArray(result.data)
+                        ? result.data
+                        : [];
+
+                    console.log(
+                        "RESULTATS EXTRAITS :",
+                        resultats
+                    );
+
+                    if (!resultats.length) {
+
+                        console.warn(
+                            "Aucun résultat pour cette page"
+                        );
+
+                        callback({
+                            draw: data.draw,
+                            recordsTotal: result.total || 0,
+                            recordsFiltered: result.total || 0,
+                            data: []
+                        });
+
+                        return;
+                    }
+
                     const concoursIds = [
                         ...new Set(
                             resultats
-                                .map(
-                                    resultat =>
-                                        Number(
-                                            resultat.id_concours
-                                        )
+                                .map(resultat =>
+                                    Number(resultat.id_concours)
                                 )
-                                .filter(
-                                    id => !isNaN(id)
+                                .filter(id =>
+                                    !isNaN(id)
                                 )
                         )
                     ];
 
                     console.log(
-                        "3. ID CONCOURS TROUVES :",
+                        "ID CONCOURS TROUVES :",
                         concoursIds
                     );
 
                     const concoursMap = {};
 
                     let pageConcours = 1;
-
                     let totalPagesConcours = 1;
 
                     while (
-                        pageConcours <=
-                        totalPagesConcours
+                        pageConcours <= totalPagesConcours
                     ) {
 
                         const concoursResponse =
@@ -232,42 +229,51 @@ export default class ResultatController {
                             );
 
                         console.log(
-                            `REPONSE CONCOURS PAGE ${pageConcours} :`,
+                            `CONCOURS PAGE ${pageConcours} :`,
                             concoursResponse
                         );
 
                         if (!concoursResponse.ok) {
 
                             console.error(
-                                "Impossible de charger les concours"
+                                "Erreur récupération concours"
                             );
 
                             break;
                         }
 
                         const concoursData =
-                            concoursResponse.data;
+                            concoursResponse.data || {};
 
                         const concours =
-                            concoursData?.data || [];
-
-                        totalPagesConcours =
-                            concoursData?.totalPages || 1;
+                            Array.isArray(concoursData.data)
+                                ? concoursData.data
+                                : [];
 
                         concours.forEach(concoursItem => {
 
-                            concoursMap[
+                            const id =
                                 Number(
                                     concoursItem.id_concours
-                                )
-                            ] = concoursItem;
+                                );
+
+                            if (!isNaN(id)) {
+                                concoursMap[id] =
+                                    concoursItem;
+                            }
 
                         });
 
+                        totalPagesConcours =
+                            Number(
+                                concoursData.totalPages ||
+                                concoursData.total_pages ||
+                                1
+                            );
+
                         const tousTrouves =
                             concoursIds.every(
-                                id =>
-                                    concoursMap[id]
+                                id => concoursMap[id]
                             );
 
                         if (tousTrouves) {
@@ -278,23 +284,17 @@ export default class ResultatController {
                     }
 
                     console.log(
-                        "4. CONCOURS MAP FINAL :",
+                        "CONCOURS MAP :",
                         concoursMap
                     );
 
                     const concoursAvecResultats =
                         concoursIds
-                            .map(
-                                id =>
-                                    concoursMap[id]
-                            )
-                            .filter(
-                                concours =>
-                                    concours
-                            );
+                            .map(id => concoursMap[id])
+                            .filter(Boolean);
 
                     console.log(
-                        "5. CONCOURS AVEC RESULTATS :",
+                        "CONCOURS AVEC RESULTATS :",
                         concoursAvecResultats
                     );
 
@@ -309,21 +309,20 @@ export default class ResultatController {
                                     concours.nom || "-",
 
                                     `
-                                <button
-                                    type="button"
-                                    class="btn btn-primary btn-sm btn-afficher-resultats"
-                                    data-id="${concours.id_concours}">
-                                    <i class="fas fa-eye"></i>
-                                    Afficher
-                                </button>
-                                `
+                        <button
+                            type="button"
+                            class="btn btn-primary btn-sm btn-afficher-resultats"
+                            data-id="${concours.id_concours}">
+                            <i class="fas fa-eye"></i>
+                            Afficher
+                        </button>
+                        `
                                 ];
-
                             }
                         );
 
                     console.log(
-                        "6. LIGNES DATATABLE :",
+                        "LIGNES DATATABLE :",
                         lignes
                     );
 
@@ -332,10 +331,10 @@ export default class ResultatController {
                         draw: data.draw,
 
                         recordsTotal:
-                            concoursAvecResultats.length,
+                            result.total || resultats.length,
 
                         recordsFiltered:
-                            concoursAvecResultats.length,
+                            result.total || resultats.length,
 
                         data: lignes
 
@@ -359,9 +358,7 @@ export default class ResultatController {
                         data: []
 
                     });
-
                 }
-
             },
 
             columns: [

@@ -148,4 +148,94 @@ export default class InscriptionModel {
         };
     }
 
+    static async exportExcel(token) {
+        const res = await fetch(
+            `${API_URL}/inscriptions/export/excel`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export Excel inscriptions :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportWord(token) {
+        const res = await fetch(
+            `${API_URL}/inscriptions/export/word`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export Word inscriptions :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportPDF(token) {
+        const res = await fetch(
+            `${API_URL}/inscriptions/export/pdf`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export PDF inscriptions :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
 }

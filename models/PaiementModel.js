@@ -14,7 +14,7 @@ export default class PaiementModel {
     //     );
 
     //     const data = await res.json();
-        
+
     //     console.log("RESULTAT API PAIEMENTS :", data);
 
     //     return {
@@ -25,85 +25,75 @@ export default class PaiementModel {
 
     static async getAllPaiements(token, params = {}) {
 
-    const query = new URLSearchParams({
-        draw: params.draw ?? 0,
-        start: params.start ?? 0,
-        length: params.length ?? 10,
-        search: params.search ?? "",
-        orderColumn: params.orderColumn ?? 0,
-        orderDir: params.orderDir ?? "desc"
-    });
+        const query = new URLSearchParams({
+            draw: params.draw ?? 0,
+            start: params.start ?? 0,
+            length: params.length ?? 10,
+            search: params.search ?? "",
+            orderColumn: params.orderColumn ?? 0,
+            orderDir: params.orderDir ?? "desc"
+        });
 
-    if (params.statut_paiement) {
-        query.append(
-            "statut_paiement",
-            params.statut_paiement
-        );
-    }
-
-    if (params.mode_paiement) {
-        query.append(
-            "mode_paiement",
-            params.mode_paiement
-        );
-    }
-
-    if (params.annee_concours) {
-        query.append(
-            "annee_concours",
-            params.annee_concours
-        );
-    }
-
-    if (params.nom_candidat) {
-        query.append(
-            "nom_candidat",
-            params.nom_candidat
-        );
-    }
-
-    if (params.prenom_candidat) {
-        query.append(
-            "prenom_candidat",
-            params.prenom_candidat
-        );
-    }
-
-    const url =
-        `http://localhost:4000/api/admin/paiements?${query.toString()}`;
-
-    console.log(
-        "🔵 URL API PAIEMENTS :",
-        url
-    );
-
-    const res = await fetch(
-        url,
-        {
-            method: "GET",
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+        if (params.statut_paiement) {
+            query.append(
+                "statut_paiement",
+                params.statut_paiement
+            );
         }
-    );
 
-    console.log(
-        "🟢 API PAIEMENTS HTTP :",
-        res.status
-    );
+        if (params.mode_paiement) {
+            query.append(
+                "mode_paiement",
+                params.mode_paiement
+            );
+        }
 
-    const data = await res.json();
+        if (params.annee_concours) {
+            query.append(
+                "annee_concours",
+                params.annee_concours
+            );
+        }
 
-    console.log(
-        "🟢 RESULTAT API PAIEMENTS :",
-        data
-    );
+        if (params.nom_candidat) {
+            query.append(
+                "nom_candidat",
+                params.nom_candidat
+            );
+        }
 
-    return {
-        ok: res.ok,
-        data
-    };
-}
+        if (params.prenom_candidat) {
+            query.append(
+                "prenom_candidat",
+                params.prenom_candidat
+            );
+        }
+
+        const url =
+            `http://localhost:4000/api/admin/paiements?${query.toString()}`;
+
+        console.log(
+            "🔵 URL API PAIEMENTS :",
+            url
+        );
+
+        const res = await fetch(
+            url,
+            {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await res.json();
+
+        return {
+            ok: res.ok,
+            data
+        };
+    }
 
     static async getPaiementDetail(token, idCandidat) {
         const res = await fetch(
@@ -164,5 +154,122 @@ export default class PaiementModel {
             data: result
         };
     }
+
+
+    static async exportExcel(token, filters = {}) {
+        const params = new URLSearchParams();
+
+        if (filters.statut_paiement) {
+            params.append("statut_paiement", filters.statut_paiement);
+        }
+
+        if (filters.mode_paiement) {
+            params.append("mode_paiement", filters.mode_paiement);
+        }
+
+        const query = params.toString();
+
+        const res = await fetch(
+            `${API_URL}/paiements/export/excel${query ? `?${query}` : ""}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Erreur export Excel paiements :", errorText);
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportWord(token, filters = {}) {
+        const params = new URLSearchParams();
+
+        if (filters.statut_paiement) {
+            params.append("statut_paiement", filters.statut_paiement);
+        }
+
+        if (filters.mode_paiement) {
+            params.append("mode_paiement", filters.mode_paiement);
+        }
+
+        const query = params.toString();
+
+        const res = await fetch(
+            `${API_URL}/paiements/export/word${query ? `?${query}` : ""}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Erreur export Word paiements :", errorText);
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportPDF(token, filters = {}) {
+        const params = new URLSearchParams();
+
+        if (filters.statut_paiement) {
+            params.append("statut_paiement", filters.statut_paiement);
+        }
+
+        if (filters.mode_paiement) {
+            params.append("mode_paiement", filters.mode_paiement);
+        }
+
+        const query = params.toString();
+
+        const res = await fetch(
+            `${API_URL}/paiements/export/pdf${query ? `?${query}` : ""}`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error("Erreur export PDF paiements :", errorText);
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+
 }
 

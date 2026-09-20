@@ -145,18 +145,8 @@ export default class CentreController {
 
                     };
 
-                    console.log(
-                        "PARAMÈTRES DATATABLES CENTRES :",
-                        params
-                    );
-
                     const result =
                         await CentreController.getAll(params);
-
-                    console.log(
-                        "RÉSULTAT DATATABLES CENTRES :",
-                        result
-                    );
 
                     callback(result);
 
@@ -288,22 +278,37 @@ export default class CentreController {
             language: {
                 url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
-
             layout: {
-
                 topStart: [
-
                     "pageLength",
-
                     {
                         buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
+
+                            {
+                                text: '<i class="fa fa-file-excel"></i> Excel',
+                                className: "btn-export-excel",
+                                action: async function () {
+                                    await CentreController.exportExcel();
+                                }
+                            },
+
+                            {
+                                text: '<i class="fa fa-file-word"></i> Word',
+                                className: "btn-export-word",
+                                action: async function () {
+                                    await CentreController.exportWord();
+                                }
+                            },
+
+                            {
+                                text: '<i class="fa fa-file-pdf"></i> PDF',
+                                className: "btn-export-pdf",
+                                action: async function () {
+                                    await CentreController.exportPDF();
+                                }
+                            }
                         ]
                     }
-
                 ],
 
                 topEnd: "search",
@@ -411,5 +416,128 @@ export default class CentreController {
 
             await this.initDataTable();
         });
+    }
+
+    static async downloadExport(type) {
+        const token = AdminController.getToken();
+
+        if (!token) {
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text: "Veuillez vous reconnecter."
+            });
+
+            return;
+        }
+
+        try {
+            Swal.fire({
+                title: "Export en cours...",
+                text: `Préparation du fichier ${type.toUpperCase()}.`,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            let res;
+            let extension;
+
+            switch (type) {
+                case "excel":
+                    res = await CentreModel.exportExcel(token);
+                    extension = "xlsx";
+                    break;
+
+                case "word":
+                    res = await CentreModel.exportWord(token);
+                    extension = "docx";
+                    break;
+
+                case "pdf":
+                    res = await CentreModel.exportPDF(token);
+                    extension = "pdf";
+                    break;
+
+                default:
+                    Swal.close();
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erreur",
+                        text: "Type d'export invalide."
+                    });
+
+                    return;
+            }
+
+            if (!res.ok) {
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: `Impossible d'exporter les centres en ${type.toUpperCase()}.`
+                });
+
+                return;
+            }
+
+            const url = window.URL.createObjectURL(
+                res.blob
+            );
+
+            const link = document.createElement("a");
+
+            link.href = url;
+
+            link.download =
+                `centres_${new Date().toISOString().slice(0, 10)}.${extension}`;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Export terminé",
+                text: `Tous les centres ont été exportés en ${type.toUpperCase()}.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error(
+                `Erreur export ${type} centres :`,
+                error
+            );
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Une erreur est survenue pendant l'export."
+            });
+        }
+    }
+
+    static async exportExcel() {
+        await this.downloadExport("excel");
+    }
+
+    static async exportWord() {
+        await this.downloadExport("word");
+    }
+
+    static async exportPDF() {
+        await this.downloadExport("pdf");
     }
 }

@@ -34,11 +34,6 @@ export default class ExamenModel {
         const url =
             `${API_URL}/examen/list-exam?${query.toString()}`;
 
-        console.log(
-            "🔵 URL API EXAMENS :",
-            url
-        );
-
         const res = await fetch(
             url,
             {
@@ -49,17 +44,7 @@ export default class ExamenModel {
             }
         );
 
-        console.log(
-            "🟢 API EXAMENS RÉPONSE HTTP :",
-            res.status
-        );
-
         const result = await res.json();
-
-        console.log(
-            "🟢 RESULTAT API EXAMENS :",
-            result
-        );
 
         return {
             ok: res.ok,
@@ -141,6 +126,96 @@ export default class ExamenModel {
         return {
             ok: res.ok,
             data: result
+        };
+    }
+
+    static async exportExcel(token) {
+        const res = await fetch(
+            `${API_URL}/examens/export/excel`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export Excel examens :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportWord(token) {
+        const res = await fetch(
+            `${API_URL}/examens/export/word`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export Word examens :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportPDF(token) {
+        const res = await fetch(
+            `${API_URL}/examens/export/pdf`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export PDF examens :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
         };
     }
 }

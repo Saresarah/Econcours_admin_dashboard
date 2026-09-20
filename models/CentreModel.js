@@ -173,4 +173,94 @@ export default class CentreModel {
         };
     }
 
+    static async exportExcel(token) {
+        const res = await fetch(
+            `${API_URL}/export/excel`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export Excel centres :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportWord(token) {
+        const res = await fetch(
+            `${API_URL}/export/word`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export Word centres :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
+    static async exportPDF(token) {
+        const res = await fetch(
+            `${API_URL}/export/pdf`,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (!res.ok) {
+            const errorText = await res.text();
+
+            console.error(
+                "Erreur export PDF centres :",
+                errorText
+            );
+
+            return {
+                ok: false
+            };
+        }
+
+        return {
+            ok: true,
+            blob: await res.blob()
+        };
+    }
+
 }

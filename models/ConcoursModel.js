@@ -219,4 +219,91 @@ export default class ConcoursModel {
             data: await res.json()
         };
     }
+
+    static async exportExcel(token) {
+    const res = await fetch(
+        `${API_URL}/concours/export/excel`,
+        {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        }
+    );
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error(
+            "Erreur export Excel concours :",
+            errorText
+        );
+
+        return {
+            ok: false
+        };
+    }
+
+    return {
+        ok: true,
+        blob: await res.blob()
+    };
+}
+
+static async exportWord(token) {
+    const res = await fetch(
+        `${API_URL}/concours/export/word`,
+        {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        }
+    );
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error(
+            "Erreur export Word concours :",
+            errorText
+        );
+
+        return {
+            ok: false
+        };
+    }
+
+    return {
+        ok: true,
+        blob: await res.blob()
+    };
+}
+
+static async exportPDF(token) {
+    const res = await fetch(
+        `${API_URL}/concours/export/pdf`,
+        {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        }
+    );
+
+    if (!res.ok) {
+        const errorText = await res.text();
+        console.error(
+            "Erreur export PDF concours :",
+            errorText
+        );
+
+        return {
+            ok: false
+        };
+    }
+
+    return {
+        ok: true,
+        blob: await res.blob()
+    };
+}
 }

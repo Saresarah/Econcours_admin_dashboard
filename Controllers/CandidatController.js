@@ -587,23 +587,36 @@ export default class CandidatController {
             },
 
             layout: {
-
                 topStart: [
                     "pageLength",
                     {
                         buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
+                            {
+                                text: '<i class="fa fa-file-excel"></i> Excel',
+                                className: "btn-export-excel",
+                                action: async function () {
+                                    await CandidatController.exportExcel();
+                                }
+                            },
+                            {
+                                text: '<i class="fa fa-file-word"></i> Word',
+                                className: "btn-export-word",
+                                action: async function () {
+                                    await CandidatController.exportWord();
+                                }
+                            },
+                            {
+                                text: '<i class="fa fa-file-pdf"></i> PDF',
+                                className: "btn-export-pdf",
+                                action: async function () {
+                                    await CandidatController.exportPDF();
+                                }
+                            }
                         ]
                     }
                 ],
-
                 topEnd: "search",
-
                 bottomStart: "info",
-
                 bottomEnd: "paging"
             }
         });
@@ -953,4 +966,272 @@ ${concoursHTML}
             await this.initDataTable();
         });
     }
+
+
+    static async exportExcel() {
+
+        const token =
+            AdminController.getToken();
+
+        if (!token) {
+
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text: "Veuillez vous reconnecter."
+            });
+
+            return;
+        }
+
+        try {
+
+            Swal.fire({
+                title: "Export en cours...",
+                text: "Préparation du fichier Excel.",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const res =
+                await CandidatModel.exportExcel(token);
+
+            if (!res.ok) {
+
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text:
+                        "Impossible d'exporter les candidats."
+                });
+
+                return;
+            }
+
+            const url =
+                window.URL.createObjectURL(res.blob);
+
+            const link =
+                document.createElement("a");
+
+            link.href = url;
+
+            link.download =
+                `candidats_${new Date()
+                    .toISOString()
+                    .slice(0, 10)}.xlsx`;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Export terminé",
+                text:
+                    "Tous les candidats ont été exportés.",
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Erreur export Excel :",
+                error
+            );
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text:
+                    "Une erreur est survenue pendant l'export."
+            });
+        }
+    }
+
+    static async exportWord() {
+
+        const token =
+            AdminController.getToken();
+
+        if (!token) {
+
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text:
+                    "Veuillez vous reconnecter."
+            });
+
+            return;
+        }
+
+        try {
+
+            Swal.fire({
+                title: "Export en cours...",
+                text:
+                    "Préparation du document Word.",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const res =
+                await CandidatModel.exportWord(
+                    token
+                );
+
+            if (!res.ok) {
+
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text:
+                        "Impossible d'exporter les candidats."
+                });
+
+                return;
+            }
+
+            const url =
+                window.URL.createObjectURL(
+                    res.blob
+                );
+
+            const link =
+                document.createElement("a");
+
+            link.href = url;
+
+            link.download =
+                `candidats_${new Date()
+                    .toISOString()
+                    .slice(0, 10)}.docx`;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Export terminé",
+                text:
+                    "Tous les candidats ont été exportés dans Word.",
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Erreur export Word :",
+                error
+            );
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text:
+                    "Une erreur est survenue pendant l'export."
+            });
+        }
+    }
+
+    static async exportPDF() {
+        const token = AdminController.getToken();
+
+        if (!token) {
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text: "Veuillez vous reconnecter."
+            });
+
+            return;
+        }
+
+        try {
+            Swal.fire({
+                title: "Export en cours...",
+                text: "Préparation du document PDF.",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const res = await CandidatModel.exportPDF(token);
+
+            if (!res.ok) {
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: "Impossible d'exporter les candidats en PDF."
+                });
+
+                return;
+            }
+
+            const url = window.URL.createObjectURL(res.blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `candidats_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Export terminé",
+                text: "Tous les candidats ont été exportés en PDF.",
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error("Erreur export PDF :", error);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Une erreur est survenue pendant l'export PDF."
+            });
+        }
+    }
+
 }

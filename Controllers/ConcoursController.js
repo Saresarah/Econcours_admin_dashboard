@@ -453,29 +453,43 @@ export default class ConcoursController {
             },
 
             layout: {
-
                 topStart: [
                     "pageLength",
                     {
                         buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
+                
+                            {
+                                text: '<i class="fa fa-file-excel"></i> Excel',
+                                className: "btn-export-excel",
+                                action: async function () {
+                                    await ConcoursController.exportExcel();
+                                }
+                            },
+                            {
+                                text: '<i class="fa fa-file-word"></i> Word',
+                                className: "btn-export-word",
+                                action: async function () {
+                                    await ConcoursController.exportWord();
+                                }
+                            },
+                            {
+                                text: '<i class="fa fa-file-pdf"></i> PDF',
+                                className: "btn-export-pdf",
+                                action: async function () {
+                                    await ConcoursController.exportPDF();
+                                }
+                            }
                         ]
                     }
                 ],
-
                 topEnd: "search",
-
                 bottomStart: "info",
-
                 bottomEnd: "paging"
             }
         });
 
         this.bindEvents();
-        this.bindEvents();
+
     }
 
     static bindEvents() {
@@ -942,6 +956,109 @@ export default class ConcoursController {
         );
 
         modal.show();
+    }
+
+    static async downloadExport(type) {
+        const token = AdminController.getToken();
+
+        if (!token) {
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text: "Veuillez vous reconnecter."
+            });
+
+            return;
+        }
+
+        try {
+            Swal.fire({
+                title: "Export en cours...",
+                text: `Préparation du fichier ${type.toUpperCase()}.`,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            let res;
+            let extension;
+
+            if (type === "excel") {
+                res = await ConcoursModel.exportExcel(token);
+                extension = "xlsx";
+            } else if (type === "word") {
+                res = await ConcoursModel.exportWord(token);
+                extension = "docx";
+            } else {
+                res = await ConcoursModel.exportPDF(token);
+                extension = "pdf";
+            }
+
+            if (!res.ok) {
+                Swal.close();
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: `Impossible d'exporter les concours en ${type.toUpperCase()}.`
+                });
+
+                return;
+            }
+
+            const url = window.URL.createObjectURL(
+                res.blob
+            );
+
+            const link = document.createElement("a");
+
+            link.href = url;
+            link.download =
+                `concours_${new Date().toISOString().slice(0, 10)}.${extension}`;
+
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "success",
+                title: "Export terminé",
+                text: `Tous les concours ont été exportés en ${type.toUpperCase()}.`,
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+        } catch (error) {
+            console.error(
+                `Erreur export ${type} concours :`,
+                error
+            );
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Une erreur est survenue pendant l'export."
+            });
+        }
+    }
+
+    static async exportExcel() {
+        await this.downloadExport("excel");
+    }
+
+    static async exportWord() {
+        await this.downloadExport("word");
+    }
+
+    static async exportPDF() {
+        await this.downloadExport("pdf");
     }
 
 }
