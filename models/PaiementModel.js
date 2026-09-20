@@ -2,26 +2,108 @@ const API_URL = "http://localhost:4000/api/admin";
 
 export default class PaiementModel {
 
-    static async getAllPaiements(token, params = "") {
+    // static async getAllPaiements(token, params = "") {
 
-        const res = await fetch(
-            `http://localhost:4000/api/admin/paiements${params}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
+    //     const res = await fetch(
+    //         `http://localhost:4000/api/admin/paiements${params}`,
+    //         {
+    //             headers: {
+    //                 Authorization: `Bearer ${token}`
+    //             }
+    //         }
+    //     );
 
-        const data = await res.json();
+    //     const data = await res.json();
         
-        console.log("RESULTAT API PAIEMENTS :", data);
+    //     console.log("RESULTAT API PAIEMENTS :", data);
 
-        return {
-            ok: res.ok,
-            data
-        };
+    //     return {
+    //         ok: res.ok,
+    //         data
+    //     };
+    // }
+
+    static async getAllPaiements(token, params = {}) {
+
+    const query = new URLSearchParams({
+        draw: params.draw ?? 0,
+        start: params.start ?? 0,
+        length: params.length ?? 10,
+        search: params.search ?? "",
+        orderColumn: params.orderColumn ?? 0,
+        orderDir: params.orderDir ?? "desc"
+    });
+
+    if (params.statut_paiement) {
+        query.append(
+            "statut_paiement",
+            params.statut_paiement
+        );
     }
+
+    if (params.mode_paiement) {
+        query.append(
+            "mode_paiement",
+            params.mode_paiement
+        );
+    }
+
+    if (params.annee_concours) {
+        query.append(
+            "annee_concours",
+            params.annee_concours
+        );
+    }
+
+    if (params.nom_candidat) {
+        query.append(
+            "nom_candidat",
+            params.nom_candidat
+        );
+    }
+
+    if (params.prenom_candidat) {
+        query.append(
+            "prenom_candidat",
+            params.prenom_candidat
+        );
+    }
+
+    const url =
+        `http://localhost:4000/api/admin/paiements?${query.toString()}`;
+
+    console.log(
+        "🔵 URL API PAIEMENTS :",
+        url
+    );
+
+    const res = await fetch(
+        url,
+        {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    console.log(
+        "🟢 API PAIEMENTS HTTP :",
+        res.status
+    );
+
+    const data = await res.json();
+
+    console.log(
+        "🟢 RESULTAT API PAIEMENTS :",
+        data
+    );
+
+    return {
+        ok: res.ok,
+        data
+    };
+}
 
     static async getPaiementDetail(token, idCandidat) {
         const res = await fetch(

@@ -210,6 +210,7 @@
             }
 
             CandidatController.initDataTable();
+            CandidatController.getAll();
             CandidatController.registerCandidat();
             CandidatController.initDeleteButtons();
             CandidatController.initEditModal();

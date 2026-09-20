@@ -54,17 +54,38 @@ export default class AdminModel {
         };
     }
 
-    static async getAllAdmins(token) {
+    static async getAllAdmins(token, params = {}) {
 
-        const res = await fetch(`${API_URL}/admin/get-all-admin`, {
+        const query = new URLSearchParams({
+            draw: params.draw ?? 0,
+            start: params.start ?? 0,
+            length: params.length ?? 10,
+            search: params.search ?? ""
+        });
+
+        const url =
+            `${API_URL}/admin/get-all-admin?${query.toString()}`;
+
+        console.log("🔵 URL API ADMINS :", url);
+
+        const res = await fetch(url, {
             method: "GET",
             headers: {
                 "Authorization": "Bearer " + token
             }
         });
 
+        console.log(
+            "🟢 API ADMINS HTTP :",
+            res.status
+        );
+
         const result = await res.json();
-        console.log("RESULT API ADMINS :", result);
+
+        console.log(
+            "🟢 RESULTAT API ADMINS :",
+            result
+        );
 
         return {
             ok: res.ok,

@@ -156,14 +156,15 @@ export default class InscriptionController {
             placeholder: "Sélectionnez un centre"
         });
     }
-
     static async getAll(params) {
 
         const token = AdminController.getToken();
 
         if (!token) {
 
-            console.warn("Aucun token admin");
+            console.warn(
+                "Aucun token administrateur"
+            );
 
             return {
                 draw: params?.draw ?? 0,
@@ -206,17 +207,13 @@ export default class InscriptionController {
     static initDataTable() {
 
         if ($.fn.DataTable.isDataTable("#inscriptionTable")) {
-            $("#inscriptionTable")
-                .DataTable()
-                .destroy();
+            console.log("DataTable inscriptions déjà initialisé");
+            return;
         }
 
         $("#inscriptionTable").DataTable({
-
             processing: true,
-
             serverSide: true,
-
             responsive: true,
 
             pageLength: 10,
@@ -227,149 +224,16 @@ export default class InscriptionController {
             ],
 
             searching: true,
-
             ordering: true,
-
             info: true,
-
             searchDelay: 500,
-
-            // ajax: async function (data, callback) {
-
-            //     try {
-
-            //         const params = {
-
-            //             draw: data.draw,
-
-            //             start: data.start,
-
-            //             length: data.length,
-
-            //             search:
-            //                 data.search?.value || "",
-
-            //             orderColumn:
-            //                 data.order?.[0]?.column ?? 0,
-
-            //             orderDir:
-            //                 data.order?.[0]?.dir ?? "asc"
-            //         };
-
-            //         console.log(
-            //             "PARAMÈTRES DATATABLES INSCRIPTIONS :",
-            //             params
-            //         );
-
-            //         const result =
-            //             await InscriptionController.getAll(
-            //                 params
-            //             );
-
-            //         console.log(
-            //             "RÉSULTAT DATATABLES INSCRIPTIONS :",
-            //             result
-            //         );
-
-            //         const inscriptions =
-            //             Array.isArray(result?.data)
-            //                 ? result.data
-            //                 : Object.values(
-            //                     result?.data || {}
-            //                 );
-
-            //         const rows =
-            //             inscriptions.map(
-            //                 (item, index) => {
-
-            //                     const candidat =
-            //                         item.candidat || {};
-
-            //                     const listeInscriptions =
-            //                         item.inscriptions || [];
-
-            //                     const preview =
-            //                         listeInscriptions
-            //                             .slice(0, 2)
-            //                             .map(i => `
-            //                             <div>
-            //                                 <b>
-            //                                     ${i.concours?.nom || "-"}
-            //                                 </b>
-            //                             </div>
-            //                         `)
-            //                             .join("");
-
-            //                     const autres =
-            //                         listeInscriptions.length > 2
-            //                             ? `
-            //                             <span class="badge badge-info">
-            //                                 +${listeInscriptions.length - 2} autres
-            //                             </span>
-            //                         `
-            //                             : "";
-
-            //                     return [
-
-            //                         params.start + index + 1,
-
-            //                         `
-            //                         ${candidat.nom || ""}
-            //                         ${candidat.prenom || ""}
-            //                     `,
-
-            //                         `
-            //                         ${preview}
-            //                         ${autres}
-            //                     `,
-
-            //                         `
-            //                         <button
-            //                             class="btn btn-info btn-sm btn-detail-candidat"
-            //                             data-id="${candidat.id_candidat}">
-            //                             <i class="fa fa-eye"></i>
-            //                         </button>
-            //                     `
-            //                     ];
-            //                 }
-            //             );
-
-            //         callback({
-
-            //             draw: result?.draw ?? data.draw,
-
-            //             recordsTotal:
-            //                 result?.recordsTotal ?? 0,
-
-            //             recordsFiltered:
-            //                 result?.recordsFiltered ?? 0,
-
-            //             data: rows
-            //         });
-
-            //     } catch (error) {
-
-            //         console.error(
-            //             "ERREUR DATATABLE INSCRIPTIONS :",
-            //             error
-            //         );
-
-            //         callback({
-
-            //             draw: data.draw,
-
-            //             recordsTotal: 0,
-
-            //             recordsFiltered: 0,
-
-            //             data: []
-            //         });
-            //     }
-            // },
 
             ajax: async function (data, callback) {
 
-                console.log("1️⃣ DATATABLE → REQUÊTE INSCRIPTIONS", data);
+                console.log(
+                    "1️⃣ DATATABLE → REQUÊTE INSCRIPTIONS",
+                    data
+                );
 
                 try {
 
@@ -382,69 +246,83 @@ export default class InscriptionController {
                         orderDir: data.order?.[0]?.dir ?? "asc"
                     };
 
-                    console.log("2️⃣ PARAMÈTRES ENVOYÉS :", params);
+                    console.log(
+                        "2️⃣ PARAMÈTRES ENVOYÉS :",
+                        params
+                    );
 
                     const result =
                         await InscriptionController.getAll(params);
 
-                    console.log("3️⃣ RÉPONSE CONTROLLER :", result);
+                    console.log(
+                        "3️⃣ RÉPONSE CONTROLLER :",
+                        result
+                    );
 
                     const inscriptions =
                         Array.isArray(result?.data)
                             ? result.data
                             : Object.values(result?.data || {});
 
-                    console.log("4️⃣ INSCRIPTIONS :", inscriptions);
+                    const rows = inscriptions.map(
+                        (item, index) => {
 
-                    const rows = inscriptions.map((item, index) => {
+                            const candidat =
+                                item.candidat || {};
 
-                        const candidat = item.candidat || {};
-                        const listeInscriptions = item.inscriptions || [];
+                            const listeInscriptions =
+                                item.inscriptions || [];
 
-                        const preview =
-                            listeInscriptions
-                                .slice(0, 2)
-                                .map(i => `
-                        <div>
-                            <b>${i.concours?.nom || "-"}</b>
-                        </div>
-                    `)
-                                .join("");
+                            const preview =
+                                listeInscriptions
+                                    .slice(0, 2)
+                                    .map(i => `
+                                    <div>
+                                        <b>${i.concours?.nom || "-"}</b>
+                                    </div>
+                                `)
+                                    .join("");
 
-                        const autres =
-                            listeInscriptions.length > 2
-                                ? `
-                        <span class="badge badge-info">
-                            +${listeInscriptions.length - 2} autres
-                        </span>
-                    `
-                                : "";
+                            const autres =
+                                listeInscriptions.length > 2
+                                    ? `
+                                    <span class="badge badge-info">
+                                        +${listeInscriptions.length - 2} autres
+                                    </span>
+                                `
+                                    : "";
 
-                        return [
-                            params.start + index + 1,
+                            return [
+                                params.start + index + 1,
 
-                            `${candidat.nom || ""} ${candidat.prenom || ""}`,
+                                `${candidat.nom || ""} ${candidat.prenom || ""}`,
 
-                            `${preview}${autres}`,
+                                `${preview}${autres}`,
 
-                            `<button
-                    class="btn btn-info btn-sm btn-detail-candidat"
-                    data-id="${candidat.id_candidat}">
-                    <i class="fa fa-eye"></i>
-                </button>`
-                        ];
-                    });
+                                `<button
+                                class="btn btn-info btn-sm btn-detail-candidat"
+                                data-id="${candidat.id_candidat}">
+                                <i class="fa fa-eye"></i>
+                            </button>`
+                            ];
+                        }
+                    );
 
-                    console.log("5️⃣ LIGNES DATATABLE :", rows);
+                    console.log(
+                        "4️⃣ LIGNES DATATABLE :",
+                        rows
+                    );
 
                     callback({
-                        draw: result?.draw ?? data.draw,
+                        draw: data.draw,
                         recordsTotal: result?.recordsTotal ?? 0,
                         recordsFiltered: result?.recordsFiltered ?? 0,
                         data: rows
                     });
 
-                    console.log("6️⃣ CALLBACK DATATABLE APPELÉ");
+                    console.log(
+                        "5️⃣ CALLBACK DATATABLE APPELÉ"
+                    );
 
                 } catch (error) {
 
@@ -463,53 +341,35 @@ export default class InscriptionController {
             },
 
             columns: [
-
                 {
                     title: "#",
-
                     className: "text-center",
-
                     orderable: false,
-
                     searchable: false
                 },
-
                 {
                     title: "Candidat",
-
                     className: "text-center"
                 },
-
                 {
                     title: "Concours",
-
                     className: "text-center"
                 },
-
                 {
                     title: "Détails",
-
                     className: "text-center",
-
                     orderable: false,
-
                     searchable: false
                 }
-
             ],
 
             language: {
-
-                url:
-                    "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
+                url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
 
             layout: {
-
                 topStart: [
-
                     "pageLength",
-
                     {
                         buttons: [
                             "copy",
@@ -518,13 +378,9 @@ export default class InscriptionController {
                             "pdf"
                         ]
                     }
-
                 ],
-
                 topEnd: "search",
-
                 bottomStart: "info",
-
                 bottomEnd: "paging"
             }
         });
@@ -773,7 +629,7 @@ export default class InscriptionController {
 
         $("#editInscriptionModal").modal("hide");
 
-        await this.loadInscriptions();
+        // await this.getAll();
     }
 
     static initDeleteInscription() {
@@ -826,7 +682,7 @@ export default class InscriptionController {
 
                 $("#detailInscriptionModal").modal("hide");
 
-                await InscriptionController.loadInscriptions();
+                await InscriptionController.getAll();
 
             } catch (error) {
 

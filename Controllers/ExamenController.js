@@ -25,36 +25,33 @@ export default class ExamenController {
 
     }
 
-    static async getAll(page = 1, limit = 10) {
+    static async getAll(params) {
 
         const token = AdminController.getToken();
 
         if (!token) {
-            console.warn("Aucun token administrateur");
+
+            console.warn(
+                "Aucun token administrateur"
+            );
+
             return {
-                page: 1,
-                limit: 10,
-                total: 0,
-                totalPages: 0,
-                examen: []
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
             };
         }
 
         const res =
             await ExamenModel.getAllExamens(
                 token,
-                page,
-                limit
+                params
             );
 
         console.log(
-            "Réponse API examens :",
+            "RÉPONSE API EXAMENS :",
             res
-        );
-
-        console.log(
-            "res.data :",
-            res.data
         );
 
         if (!res.ok) {
@@ -73,11 +70,10 @@ export default class ExamenController {
             });
 
             return {
-                page: 1,
-                limit: 10,
-                total: 0,
-                totalPages: 0,
-                examen: []
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
             };
         }
 
@@ -85,16 +81,19 @@ export default class ExamenController {
     }
 
 
-    static async initDataTable() {
+    static initDataTable() {
 
         console.log(
             "INITIALISATION DATATABLE EXAMENS"
         );
 
         if ($.fn.DataTable.isDataTable("#dataTable")) {
-            $("#dataTable")
-                .DataTable()
-                .destroy();
+
+            console.log(
+                "DataTable examens déjà initialisé"
+            );
+
+            return;
         }
 
         $("#dataTable").DataTable({
@@ -102,66 +101,79 @@ export default class ExamenController {
             processing: true,
             serverSide: true,
 
+            responsive: true,
+
+            pageLength: 10,
+
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
+
+            searching: true,
+
+            ordering: true,
+
+            info: true,
+
+            searchDelay: 500,
+
             ajax: async function (data, callback) {
+
+                console.log(
+                    "1️⃣ DATATABLE → REQUÊTE EXAMENS :",
+                    data
+                );
 
                 try {
 
-                    const token =
-                        AdminController.getToken();
+                    const params = {
 
-                    const start = data.start;
-                    const length = data.length;
+                        draw: data.draw,
 
-                    const page =
-                        Math.floor(start / length) + 1;
+                        start: data.start,
 
-                    const res =
-                        await ExamenModel.getAllExamens(
-                            token,
-                            page,
-                            length
+                        length: data.length,
+
+                        search:
+                            data.search?.value || "",
+
+                        orderColumn:
+                            data.order?.[0]?.column ?? 0,
+
+                        orderDir:
+                            data.order?.[0]?.dir ?? "asc"
+                    };
+
+                    console.log(
+                        "2️⃣ PARAMÈTRES EXAMENS :",
+                        params
+                    );
+
+                    const result =
+                        await ExamenController.getAll(
+                            params
                         );
 
                     console.log(
-                        "REPONSE DATATABLE EXAMENS :",
-                        res
+                        "3️⃣ RÉPONSE CONTROLLER EXAMENS :",
+                        result
                     );
-
-                    if (!res.ok) {
-
-                        callback({
-                            draw: data.draw,
-                            recordsTotal: 0,
-                            recordsFiltered: 0,
-                            data: []
-                        });
-
-                        return;
-                    }
-
-                    const result = res.data;
 
                     const examens =
                         Array.isArray(result?.data)
                             ? result.data
-                            : [];
+                            : Object.values(
+                                result?.data || {}
+                            );
 
                     console.log(
-                        "EXAMENS RECUS :",
+                        "4️⃣ EXAMENS REÇUS :",
                         examens
                     );
 
-                    callback({
-
-                        draw: data.draw,
-
-                        recordsTotal:
-                            result?.total || 0,
-
-                        recordsFiltered:
-                            result?.total || 0,
-
-                        data: examens.map(
+                    const rows =
+                        examens.map(
                             (item, index) => {
 
                                 const date =
@@ -179,18 +191,28 @@ export default class ExamenController {
                                             item.heure
                                         );
 
-                                    heure =
-                                        dateHeure.toLocaleTimeString(
-                                            "fr-FR",
-                                            {
-                                                hour: "2-digit",
-                                                minute: "2-digit"
-                                            }
-                                        );
+                                    if (
+                                        !isNaN(
+                                            dateHeure.getTime()
+                                        )
+                                    ) {
+
+                                        heure =
+                                            dateHeure.toLocaleTimeString(
+                                                "fr-FR",
+                                                {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit"
+                                                }
+                                            );
+                                    }
                                 }
 
                                 return [
-                                    start + index + 1,
+
+                                    params.start +
+                                    index +
+                                    1,
 
                                     date,
 
@@ -208,7 +230,7 @@ export default class ExamenController {
                                     data-id="${item.id_examen}"
                                     data-intitule="${item.intitule || ""}"
                                     data-type="${item.type_examen || ""}"
-                                    data-coefficient="${item.coefficient || ""}"
+                                    data-coefficient="${item.coefficient ?? ""}"
                                     data-date="${item.date_examen ? item.date_examen.split("T")[0] : ""}"
                                     data-heure="${item.heure ? item.heure.substring(11, 16) : ""}"
                                     data-lieu="${item.lieu || ""}">
@@ -226,39 +248,99 @@ export default class ExamenController {
                                 `
                                 ];
                             }
-                        )
+                        );
+
+                    console.log(
+                        "5️⃣ LIGNES DATATABLE EXAMENS :",
+                        rows
+                    );
+
+                    callback({
+
+                        draw: data.draw,
+
+                        recordsTotal:
+                            result?.recordsTotal ?? 0,
+
+                        recordsFiltered:
+                            result?.recordsFiltered ?? 0,
+
+                        data: rows
                     });
+
+                    console.log(
+                        "6️⃣ CALLBACK EXAMENS APPELÉ"
+                    );
 
                 } catch (error) {
 
                     console.error(
-                        "ERREUR DATATABLE EXAMENS :",
+                        "❌ ERREUR DATATABLE EXAMENS :",
                         error
                     );
 
                     callback({
+
                         draw: data.draw,
+
                         recordsTotal: 0,
+
                         recordsFiltered: 0,
+
                         data: []
                     });
                 }
             },
 
-            responsive: true,
+            columns: [
 
-            pageLength: 10,
+                {
+                    title: "#",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false
+                },
 
-            lengthMenu: [
-                [10, 25, 50, 100],
-                [10, 25, 50, 100]
+                {
+                    title: "Date",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Heure",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Lieu",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Intitulé",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Type",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Modifier",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false
+                },
+
+                {
+                    title: "Supprimer",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false
+                }
+
             ],
-
-            searching: true,
-
-            ordering: true,
-
-            info: true,
 
             language: {
                 url:
@@ -266,6 +348,7 @@ export default class ExamenController {
             },
 
             layout: {
+
                 topStart: [
                     "pageLength",
                     {

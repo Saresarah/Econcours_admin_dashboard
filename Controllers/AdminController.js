@@ -162,53 +162,58 @@ export default class AdminController {
         return res.data;
     }
 
-
-    static async loadAdmins() {
+    static async getAll(params) {
 
         const token = AdminController.getToken();
 
-        const res = await AdminModel.getAllAdmins(token);
+        if (!token) {
+            console.warn("Aucun token administrateur");
 
-        if (!res.ok) {
-            console.error("Erreur admins :", res);
-            return;
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
         }
 
-        const admins = res.data.data;
+        const res =
+            await AdminModel.getAllAdmins(
+                token,
+                params
+            );
 
-        const tbody = document.querySelector("#adminTable tbody");
-        tbody.innerHTML = "";
+        console.log(
+            "RÉPONSE API ADMINS :",
+            res
+        );
 
-        admins.forEach((admin, index) => {
-            console.log(admin);
-            tbody.innerHTML += `
-                <tr>
-                    <td class="text-center">${index + 1}</td>
-                    <td>${admin.nom}</td>
-                    <td>${admin.prenom}</td>
-                    <td>${admin.role}</td>
-                    <td>${admin.email}</td>
-                    <td>${admin.telephone || '-'}</td>
-                    <td>${new Date(admin.date_creation).toLocaleDateString()}</td>
-                    <td class="text-center">
-                        <button class="btn btn-warning btn-sm btn-update-admin"
-                            data-id="${admin.id}"
-                            data-nom="${admin.nom}"
-                            data-prenom="${admin.prenom}"
-                            data-role="${admin.role}">
-                            
-                            <i class="fa fa-edit"></i>
-                        </button>
-                    </td>
-                    <td class="text-center">
-                        <button class="btn btn-danger btn-sm btn-delete-admin"
-                            data-id="${admin.id}">
-                            <i class="fa fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
+        if (!res.ok) {
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text:
+                    res.data?.error ||
+                    "Impossible de charger les administrateurs"
+            });
+
+            return {
+                draw: params?.draw ?? 0,
+                recordsTotal: 0,
+                recordsFiltered: 0,
+                data: []
+            };
+        }
+
+        return res.data;
+    }
+
+    static loadAdmins() {
+
+        console.log(
+            "INITIALISATION DATATABLE ADMINS"
+        );
 
         this.initDataTable();
     }
@@ -216,26 +221,235 @@ export default class AdminController {
     static initDataTable() {
 
         if ($.fn.DataTable.isDataTable("#adminTable")) {
-            $("#adminTable").DataTable().destroy();
+            console.log(
+                "DataTable admins déjà initialisé"
+            );
+            return;
         }
 
         $("#adminTable").DataTable({
+
+            processing: true,
+            serverSide: true,
+
+            searchDelay: 500,
+
+            pageLength: 10,
+
+            lengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
+
+            ajax: async function (data, callback) {
+
+                console.log(
+                    "1️⃣ DATATABLE → REQUÊTE ADMINS :",
+                    data
+                );
+
+                try {
+
+                    const params = {
+                        draw: data.draw,
+                        start: data.start,
+                        length: data.length,
+                        search: data.search?.value || ""
+                    };
+
+                    console.log(
+                        "2️⃣ PARAMÈTRES ENVOYÉS :",
+                        params
+                    );
+
+                    const result =
+                        await AdminController.getAll(
+                            params
+                        );
+
+                    console.log(
+                        "3️⃣ RÉPONSE CONTROLLER :",
+                        result
+                    );
+
+                    const admins =
+                        Array.isArray(result?.data)
+                            ? result.data
+                            : [];
+
+                    console.log(
+                        "4️⃣ ADMINS :",
+                        admins
+                    );
+
+                    const rows = admins.map(
+                        (admin, index) => {
+
+                            return [
+                                params.start +
+                                index +
+                                1,
+
+                                admin.nom || "-",
+
+                                admin.prenom || "-",
+
+                                admin.role || "-",
+
+                                admin.email || "-",
+
+                                admin.telephone || "-",
+
+                                admin.date_creation
+                                    ? new Date(
+                                        admin.date_creation
+                                    ).toLocaleDateString(
+                                        "fr-FR"
+                                    )
+                                    : "-",
+
+                                `
+                            <button
+                                class="btn btn-warning btn-sm btn-update-admin"
+                                data-id="${admin.id}"
+                                data-nom="${admin.nom || ""}"
+                                data-prenom="${admin.prenom || ""}"
+                                data-role="${admin.role || ""}">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            `,
+
+                                `
+                            <button
+                                class="btn btn-danger btn-sm btn-delete-admin"
+                                data-id="${admin.id}">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                            `
+                            ];
+                        }
+                    );
+
+                    console.log(
+                        "5️⃣ LIGNES DATATABLE :",
+                        rows
+                    );
+
+                    callback({
+                        draw: data.draw,
+
+                        recordsTotal:
+                            result?.recordsTotal ?? 0,
+
+                        recordsFiltered:
+                            result?.recordsFiltered ?? 0,
+
+                        data: rows
+                    });
+
+                    console.log(
+                        "6️⃣ CALLBACK DATATABLE APPELÉ"
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "❌ ERREUR DATATABLE ADMINS :",
+                        error
+                    );
+
+                    callback({
+                        draw: data.draw,
+                        recordsTotal: 0,
+                        recordsFiltered: 0,
+                        data: []
+                    });
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erreur",
+                        text:
+                            "Impossible de charger les administrateurs"
+                    });
+                }
+            },
+
+            columns: [
+
+                {
+                    title: "#",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false
+                },
+
+                {
+                    title: "Nom",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Prénom",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Rôle",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Email",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Téléphone",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Date de création",
+                    className: "text-center"
+                },
+
+                {
+                    title: "Modifier",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false
+                },
+
+                {
+                    title: "Supprimer",
+                    className: "text-center",
+                    orderable: false,
+                    searchable: false
+                }
+            ],
+
             language: {
                 url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
             },
 
-
             layout: {
                 topStart: [
-                    'pageLength',
+                    "pageLength",
                     {
-                        buttons: ['copy', 'excel', 'csv', 'pdf']
+                        buttons: [
+                            "copy",
+                            "excel",
+                            "csv",
+                            "pdf"
+                        ]
                     }
                 ],
-                topEnd: 'search',
 
-                bottomStart: 'info',
-                bottomEnd: 'paging'
+                topEnd: "search",
+
+                bottomStart: "info",
+
+                bottomEnd: "paging"
             }
         });
     }
@@ -594,6 +808,6 @@ export default class AdminController {
         });
     }
 
-   
+
 }
 

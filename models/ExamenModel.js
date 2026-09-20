@@ -20,26 +20,51 @@ export default class ExamenModel {
         };
     }
 
-    static async getAllExamens(token,page = 1, limit = 10) {
+    static async getAllExamens(token, params = {}) {
 
-        const res = await fetch(`${API_URL}/examen/list-exam?page=${page}&limit=${limit}`, {
-
-            method: "GET",
-
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-
+        const query = new URLSearchParams({
+            draw: params.draw ?? 0,
+            start: params.start ?? 0,
+            length: params.length ?? 10,
+            search: params.search ?? "",
+            orderColumn: params.orderColumn ?? 0,
+            orderDir: params.orderDir ?? "asc"
         });
 
+        const url =
+            `${API_URL}/examen/list-exam?${query.toString()}`;
+
+        console.log(
+            "🔵 URL API EXAMENS :",
+            url
+        );
+
+        const res = await fetch(
+            url,
+            {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        console.log(
+            "🟢 API EXAMENS RÉPONSE HTTP :",
+            res.status
+        );
+
         const result = await res.json();
-        console.log("RESULTAT API EXAMENS :", result);
+
+        console.log(
+            "🟢 RESULTAT API EXAMENS :",
+            result
+        );
 
         return {
             ok: res.ok,
             data: result
         };
-
     }
 
     static async getDetailExamen(token, id_examen) {

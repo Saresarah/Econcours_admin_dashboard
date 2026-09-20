@@ -181,14 +181,14 @@
             }
 
             InscriptionController.initInscriptionConcours();
+           // InscriptionController.initDataTable();
             InscriptionController.loadCentres();
             InscriptionController.loadConcours();
             InscriptionController.loadCandidats();
-            InscriptionController.getAll();
-            InscriptionController.initDataTable();
             InscriptionController.initEvents();
             InscriptionController.initDeleteInscription();
             AdminController.initImportListe();
+            InscriptionController.initDataTable();
             AdminController.initLogout();
             $(document).on("change", "#id_concours", async function() {
 
