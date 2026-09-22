@@ -39,7 +39,7 @@ export default class InscriptionController {
                 id_centre: Number(id_centre)
             };
 
-            console.log("DATA INSCRIPTION :", data);
+           // console.log("DATA INSCRIPTION :", data);
 
             const res = await InscriptionModel.inscrireConcours(token, data);
 
@@ -103,14 +103,14 @@ export default class InscriptionController {
 
         const res = await CandidatModel.getCandidatsForSelect(token);
 
-        console.log("CANDIDATS :", res);
+       // console.log("CANDIDATS :", res);
 
         const select = $("#id_candidat");
 
         select.empty();
 
         select.append(`<option value="">Sélectionnez un candidat</option>`);
-        console.log("Premier candidat :", res.data.data[0]);
+       // console.log("Premier candidat :", res.data.data[0]);
         res.data.data.forEach(c => {
 
             select.append(`
@@ -162,9 +162,7 @@ export default class InscriptionController {
 
         if (!token) {
 
-            console.warn(
-                "Aucun token administrateur"
-            );
+          window.location.href = "../login.php";
 
             return {
                 draw: params?.draw ?? 0,
@@ -180,10 +178,10 @@ export default class InscriptionController {
                 params
             );
 
-        console.log(
-            "RÉPONSE API INSCRIPTIONS :",
-            res
-        );
+        // console.log(
+        //     "RÉPONSE API INSCRIPTIONS :",
+        //     res
+        // );
 
         if (!res.ok) {
 
@@ -207,7 +205,7 @@ export default class InscriptionController {
     static initDataTable() {
 
         if ($.fn.DataTable.isDataTable("#inscriptionTable")) {
-            console.log("DataTable inscriptions déjà initialisé");
+           // console.log("DataTable inscriptions déjà initialisé");
             return;
         }
 
@@ -262,20 +260,26 @@ export default class InscriptionController {
                                 listeInscriptions
                                     .slice(0, 2)
                                     .map(i => `
-                                    <div>
-                                        <b>${i.concours?.nom || "-"}</b>
-                                    </div>
-                                `)
+                    <div>
+                        <b>${i.concours?.nom || "-"}</b>
+                    </div>
+                `)
                                     .join("");
 
                             const autres =
                                 listeInscriptions.length > 2
                                     ? `
-                                    <span class="badge badge-info">
-                                        +${listeInscriptions.length - 2} autres
-                                    </span>
-                                `
+                    <span class="badge badge-info">
+                        +${listeInscriptions.length - 2} autres
+                    </span>
+                `
                                     : "";
+
+                            const idsInscriptions =
+                                listeInscriptions
+                                    .map(i => i.id_inscription)
+                                    .filter(Boolean)
+                                    .join(",");
 
                             return [
                                 params.start + index + 1,
@@ -285,10 +289,12 @@ export default class InscriptionController {
                                 `${preview}${autres}`,
 
                                 `<button
-                                class="btn btn-info btn-sm btn-detail-candidat"
-                                data-id="${candidat.id_candidat}">
-                                <i class="fa fa-eye"></i>
-                            </button>`
+                type="button"
+                class="btn btn-info btn-sm btn-detail-candidat"
+                data-ids="${idsInscriptions}"
+                title="Voir détail">
+                <i class="fa fa-eye"></i>
+            </button>`
                             ];
                         }
                     );
@@ -343,7 +349,7 @@ export default class InscriptionController {
                     "pageLength",
                     {
                         buttons: [
-                            
+
                             {
                                 text: '<i class="fa fa-file-excel"></i> Excel',
                                 className: "btn-export-excel",
@@ -380,12 +386,27 @@ export default class InscriptionController {
         document.addEventListener("click", async (e) => {
 
             // ===== DETAIL CANDIDAT =====
-            const btnDetail = e.target.closest(".btn-detail-candidat");
+            $(document).on(
+                "click",
+                ".btn-detail-candidat",
+                function () {
 
-            if (btnDetail) {
-                await this.showDetailCandidat(btnDetail.dataset.id);
-                return;
-            }
+                    const idsInscriptions =
+                        $(this)
+                            .attr("data-ids")
+                            .split(",")
+                            .filter(Boolean);
+
+                    // console.log(
+                    //     "IDS INSCRIPTIONS :",
+                    //     idsInscriptions
+                    // );
+
+                    InscriptionController.showDetailCandidat(
+                        idsInscriptions
+                    );
+                }
+            );
 
             // ===== EDIT INSCRIPTION =====
             const btnEdit = e.target.closest(".btn-edit-inscription");
@@ -403,198 +424,324 @@ export default class InscriptionController {
             });
     }
 
-    static async showDetailCandidat(idCandidat) {
+    static async showDetailCandidat(idsInscriptions) {
 
         const token = AdminController.getToken();
 
-        const res = await InscriptionModel.getAllInscriptions(token);
-
-        const candidats = Object.values(res.data.data);
-
-        const candidat = candidats.find(
-            c => c.candidat.id_candidat === idCandidat
-        );
-
-        if (!candidat) {
-            Swal.fire("Erreur", "Candidat introuvable", "error");
+        if (!token) {
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text: "Veuillez vous reconnecter."
+            });
+            window.location.href = "../login.php";
             return;
         }
 
-        const details = await Promise.all(
-            candidat.inscriptions.map(ins =>
-                InscriptionModel.detailInscription(token, ins.id_inscription)
-            )
-        );
+        if (!idsInscriptions || idsInscriptions.length === 0) {
+            Swal.fire({
+                icon: "warning",
+                title: "Aucune inscription",
+                text: "Aucune inscription trouvée pour ce candidat."
+            });
+            return;
+        }
 
-        const concoursHTML = details.map(r => {
+        try {
 
-            const d = r.data.data;
-
-            console.log("DETAIL INSCRIPTION", d);
-            console.log("DIPLOMES :", d.diplomes);
-
-            const diplomesHTML = d.diplomes?.length
-                ? d.diplomes.map((diplome, index) => `
-            <a
-                href="${diplome.url}"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="d-block mb-1"
-            >
-                <i class="fa-solid fa-file-pdf text-danger mr-1"></i>
-                Diplôme ${index + 1}
-            </a>
-        `).join("")
-                : "-";
-
-            return `
-        <tr>
-            <td>${d.concours?.nom || "-"}</td>
-
-            <td>
-                ${d.concours?.categorie?.libelle || "-"}
-            </td>
-
-            <td>
-                ${d.centre?.nom || "-"}
-            </td>
-
-            <td>
-                ${diplomesHTML}
-            </td>
-
-            <td>
-                ${d.statut_inscription || "-"}
-            </td>
-
-            <td>
-                ${d.date_inscription
-                    ? new Date(d.date_inscription).toLocaleDateString()
-                    : "-"
+            Swal.fire({
+                title: "Chargement...",
+                text: "Récupération des détails du candidat",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
-            </td>
+            });
 
-            <td>
-                <button
-                    class="btn btn-warning btn-sm btn-edit-inscription"
-                    data-id="${d.id_inscription}"
-                    data-statut="${d.statut_inscription}"
-                    data-centre="${d.centre?.id_centre || ""}">
-                    <i class="fa fa-edit"></i>
-                </button>
-            </td>
+            // console.log(
+            //     "IDs inscriptions :",
+            //     idsInscriptions
+            // );
 
-            <td>
-                <button
-                    class="btn btn-danger btn-sm btn-delete-inscription"
-                    data-id="${d.id_inscription}">
-                    <i class="fa fa-trash"></i>
-                </button>
-            </td>
-        </tr>
-    `;
-        }).join("");
+            const responses = await Promise.all(
+                idsInscriptions.map(
+                    idInscription =>
+                        InscriptionModel.detailInscription(
+                            token,
+                            idInscription
+                        )
+                )
+            );
 
+            // console.log(
+            //     "DETAILS INSCRIPTIONS :",
+            //     responses
+            // );
 
+            Swal.close();
 
-        document.getElementById("detailContent").innerHTML = `
-        <div class="row">
-            <div class="col-md-6">
-                <p><strong>Nom :</strong> ${candidat.candidat.nom}</p>
-                <p><strong>Prénom :</strong> ${candidat.candidat.prenom}</p>
-                <p><strong>Email :</strong> ${candidat.candidat.email}</p>
-                <p><strong>Téléphone :</strong> ${candidat.candidat.telephone || '-'}</p>
+            const details = responses
+                .filter(response => response.ok)
+                .map(response => response.data?.data)
+                .filter(Boolean);
+
+            if (details.length === 0) {
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Erreur",
+                    text: "Impossible de récupérer les détails des inscriptions."
+                });
+
+                return;
+            }
+
+            // Le candidat est présent dans chaque DetailInscription
+            const candidat = details[0].candidat;
+
+            // console.log(
+            //     "CANDIDAT :",
+            //     candidat
+            // );
+
+            const concoursHTML = details
+                .map(d => {
+
+                    const diplomesHTML =
+                        d.diplomes?.length
+                            ? d.diplomes
+                                .map(
+                                    (diplome, index) => `
+                                    <a
+                                        href="${diplome.url}"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="d-block mb-1"
+                                    >
+                                        <i class="fa-solid fa-file-pdf text-danger me-1"></i>
+                                        Diplôme ${index + 1}
+                                    </a>
+                                `
+                                )
+                                .join("")
+                            : "-";
+
+                   // console.log("INSCRIPTION D :", d);
+
+                    return `
+                    <tr>
+
+                        <td>
+                            ${d.concours?.nom || "-"}
+                        </td>
+
+                        <td>
+                            ${d.concours?.categorie?.libelle || "-"}
+                        </td>
+
+                        <td>
+                            ${d.centre?.nom || "-"}
+                        </td>
+
+                        <td>
+                            ${diplomesHTML}
+                        </td>
+
+                        <td>
+                            <span class="badge bg-info">
+                                ${d.statut_inscription || "-"}
+                            </span>
+                        </td>
+
+                        <td>
+                            ${d.date_inscription
+                            ? new Date(
+                                d.date_inscription
+                            ).toLocaleDateString("fr-FR")
+                            : "-"
+                        }
+                        </td>
+
+                        <td class="text-center">
+
+                            <button
+    class="btn btn-warning btn-sm btn-edit-inscription"
+    data-id="${d.id_inscription}"
+    data-statut="${d.statut_inscription || ""}"
+    data-centre="${d.centre?.id_centre || ""}"
+    data-concours="${d.concours?.id_concours || ""}"
+    title="Modifier"
+>
+    <i class="fa fa-edit"></i>
+</button>
+
+                        </td>
+
+                        <td class="text-center">
+
+                            <button
+                                class="btn btn-danger btn-sm btn-delete-inscription"
+                                data-id="${d.id_inscription}"
+                                title="Supprimer"
+                            >
+                                <i class="fa fa-trash"></i>
+                            </button>
+
+                        </td>
+
+                    </tr>
+                `;
+                })
+                .join("");
+
+            document.getElementById(
+                "detailContent"
+            ).innerHTML = `
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Nom :</strong>
+                        ${candidat.nom || "-"}
+                    </p>
+
+                    <p>
+                        <strong>Prénom :</strong>
+                        ${candidat.prenom || "-"}
+                    </p>
+
+                    <p>
+                        <strong>Email :</strong>
+                        ${candidat.email || "-"}
+                    </p>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <p>
+                        <strong>Type :</strong>
+                        ${candidat.type_candidat || "-"}
+                    </p>
+
+                    <p>
+                        <strong>Lieu de naissance :</strong>
+                        ${candidat.lieu_naissance || "-"}
+                    </p>
+
+                    <p>
+                        <strong>ID candidat :</strong>
+                        ${candidat.id_candidat || "-"}
+                    </p>
+
+                </div>
+
             </div>
 
-             <div class="col-md-6">
+            <hr>
 
-                <p>
-                    <strong>Type :</strong>
-                    ${candidat.candidat.type_candidat || '-'}
-                </p>
+            <h5 class="mb-3">
+                <i class="fa fa-file-signature"></i>
+                Inscriptions du candidat
+            </h5>
 
-                <p>
-                <strong>Statut :</strong>
-                    ${candidat.candidat.statut_compte || '-'}
-                </p>
+            <div class="table-responsive">
 
-                <p>
-                    <strong>CNIB :</strong>
-                    ${candidat.candidat.numero_cnib || '-'}
-                </p>
+                <table class="table table-bordered table-striped">
 
-                <p>
-                    <strong>Lieu naissance :</strong>
-                    ${candidat.candidat.lieu_naissance || '-'}
-                </p>
+                    <thead>
+                        <tr>
+                            <th>Concours</th>
+                            <th>Catégorie</th>
+                            <th>Centre</th>
+                            <th>Diplôme</th>
+                            <th>Statut</th>
+                            <th>Date</th>
+                            <th>Modifier</th>
+                            <th>Supprimer</th>
+                        </tr>
+                    </thead>
 
-         </div>
+                    <tbody>
+                        ${concoursHTML}
+                    </tbody>
 
-        </div>
+                </table>
 
-        <hr>
-        <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Concours</th>
-                    <th>Catégorie</th>
-                    <th>Centre</th>
-                    <th>Diplôme</th>
-                    <th>Statut</th>
-                    <th>Date</th>
-                    <th>Modifier</th>
-                    <th>Supprimer</th>
-                </tr>
-            </thead>
-            <tbody>${concoursHTML}</tbody>
-        </table>
-        </div>
-    `;
+            </div>
+        `;
 
-        $("#detailInscriptionModal").modal("show");
+            $("#detailInscriptionModal").modal("show");
 
+        } catch (error) {
+
+            console.error(
+                "Erreur détail candidat :",
+                error
+            );
+
+            Swal.close();
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Une erreur est survenue lors du chargement du candidat."
+            });
+        }
     }
 
     static async openEditModal(btn) {
 
-        const idInscription = btn.dataset.id;
-        const statut = btn.dataset.statut;
-        const idCentre = btn.dataset.centre;
+        const idInscription =
+            btn.dataset.id;
 
-        console.log({
-            idInscription,
-            statut,
-            idCentre
-        });
+        const statut =
+            btn.dataset.statut;
 
-        $("#edit_id_inscription").val(idInscription);
+        const idCentre =
+            btn.dataset.centre;
 
-        // statut
-        $("#edit_statut").val(statut);
+        const idConcours =
+            btn.dataset.concours;
 
-        const token = AdminController.getToken();
-        const centres = await CentreModel.getAllCentres(token);
 
-        const selectCentre = $("#edit_centre");
 
-        selectCentre.empty();
+        // console.log({
+        //     idInscription,
+        //     statut,
+        //     idCentre,
+        //     idConcours
+        // });
 
-        centres.data.data.forEach(c => {
+        if (!idConcours) {
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: "Le concours de cette inscription est introuvable."
+            });
+            return;
+        }
 
-            selectCentre.append(`
-            <option value="${c.id_centre}">
-                ${c.nom}
-            </option>
-        `);
-        });
+        $("#edit_id_inscription")
+            .val(idInscription);
 
-        // Préselection du centre
-        selectCentre.val(String(idCentre)).trigger("change");
+        $("#edit_statut")
+            .val(statut);
 
-        $("#editInscriptionModal").modal("show");
+        await InscriptionController.loadCentresByConcours(
+            idConcours,
+            "#edit_centre"
+        );
+
+        $("#edit_centre")
+            .val(String(idCentre))
+            .trigger("change.select2");
+
+        $("#editInscriptionModal")
+            .modal("show");
     }
-
 
     static async saveInscription() {
 
@@ -618,7 +765,7 @@ export default class InscriptionController {
 
         $("#editInscriptionModal").modal("hide");
 
-        // await this.getAll();
+        await this.getAll();
     }
 
     static initDeleteInscription() {
@@ -627,9 +774,9 @@ export default class InscriptionController {
 
             const btn = e.target.closest(".btn-delete-inscription");
             if (!btn) return;
-            console.log("BOUTON CLIQUÉ");
+           // console.log("BOUTON CLIQUÉ");
             const id_inscription = btn.dataset.id;
-            console.log("ID =", id_inscription);
+           // console.log("ID =", id_inscription);
 
             const result = await Swal.fire({
                 title: "Supprimer l'inscription ?",
@@ -650,7 +797,7 @@ export default class InscriptionController {
                     token,
                     id_inscription
                 );
-                console.log("REPONSE API :", res);
+               // console.log("REPONSE API :", res);
 
                 if (!res.ok) {
 
@@ -687,8 +834,42 @@ export default class InscriptionController {
     }
 
 
-    static async loadCentresByConcours(id_concours) {
+    // static async loadCentresByConcours(id_concours) {
 
+    //     const token = AdminController.getToken();
+
+    //     const res =
+    //         await InscriptionModel.getCentresByConcours(
+    //             token,
+    //             id_concours
+    //         );
+
+    //     const select = $("#id_centre");
+
+    //     select.empty();
+
+    //     select.append(
+    //         `<option value="">Sélectionnez un centre</option>`
+    //     );
+
+    //     res.data.forEach(data => {
+
+    //         console.log("DATA", data)
+    //         select.append(`
+    //         <option value="${data.id_centre}">
+    //             ${data.nom}
+    //         </option>
+    //     `);
+
+    //     });
+
+    //     select.trigger("change.select2");
+    // }
+
+    static async loadCentresByConcours(
+        id_concours,
+        selectId = "#id_centre"
+    ) {
         const token = AdminController.getToken();
 
         const res =
@@ -697,7 +878,9 @@ export default class InscriptionController {
                 id_concours
             );
 
-        const select = $("#id_centre");
+       // console.log("CENTRES RECUS :", res);
+
+        const select = $(selectId);
 
         select.empty();
 
@@ -705,18 +888,28 @@ export default class InscriptionController {
             `<option value="">Sélectionnez un centre</option>`
         );
 
+        if (!Array.isArray(res.data)) {
+            console.error(
+                "Les centres reçus ne sont pas un tableau :",
+                res.data
+            );
+            return false;
+        }
+
         res.data.forEach(data => {
 
-            console.log("DATA", data)
+           // console.log("DATA :", data);
+
             select.append(`
             <option value="${data.id_centre}">
                 ${data.nom}
             </option>
         `);
-
         });
 
         select.trigger("change.select2");
+
+        return true;
     }
 
     static async downloadExport(type) {
@@ -728,6 +921,8 @@ export default class InscriptionController {
                 title: "Session expirée",
                 text: "Veuillez vous reconnecter."
             });
+
+            window.location.href = "../login.php";
 
             return;
         }

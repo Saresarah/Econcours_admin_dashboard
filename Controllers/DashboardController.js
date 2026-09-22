@@ -7,11 +7,14 @@ export default class DashboardController {
 
         const token = AdminController.getToken();
 
-        const res = await DashboardModel.dashboard(token);
+        if (!token) {
 
-        console.log(res);
-        console.log(res.data);
-        console.log(res.data.data);
+            window.location.href = "../login.php";
+
+            return;
+        }
+
+        const res = await DashboardModel.dashboard(token);
 
         if (!res.ok) return;
 
@@ -162,12 +165,12 @@ export default class DashboardController {
             }
 
         });
-        console.log({
-            total: data.total,
-            thisWeek: data.thisWeek,
-            lastWeek: data.lastWeek,
-            autres: data.autres
-        });
+        // console.log({
+        //     total: data.total,
+        //     thisWeek: data.thisWeek,
+        //     lastWeek: data.lastWeek,
+        //     autres: data.autres
+        // });
     }
 
 

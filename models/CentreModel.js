@@ -21,7 +21,7 @@ export default class CentreModel {
     }
 
 
-    static async getAllCentres(token, params) {
+    static async getAllCentres(token, params = {}) {
 
         const query = new URLSearchParams({
 
@@ -52,7 +52,7 @@ export default class CentreModel {
 
         const result = await res.json();
 
-        console.log("RESULT API CENTRES :", result);
+        // console.log("RESULT API CENTRES :", result);
 
         return {
             ok: res.ok,
@@ -91,10 +91,10 @@ export default class CentreModel {
 
             const result = await res.json();
 
-            console.log(
-                "RESULT API CENTRES PAGE :",
-                result
-            );
+            // console.log(
+            //     "RESULT API CENTRES PAGE :",
+            //     result
+            // );
 
             if (!res.ok) {
 

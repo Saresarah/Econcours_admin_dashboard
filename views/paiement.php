@@ -97,13 +97,13 @@
                                             </tr>
                                         </thead>
                                         <tfoot>
-                                            <tr>
+                                            <!-- <tr>
                                                 <th class="text-center">N°</th>
                                                 <th class="text-center">Candidat</th>
                                                 <th class="text-center">Paiements</th>
                                                 <th class="text-center">Total payé</th>
                                                 <th class="text-center">Action</th>
-                                            </tr>
+                                            </tr> -->
                                         </tfoot>
 
 

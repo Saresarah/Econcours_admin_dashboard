@@ -9,8 +9,7 @@ export default class CategorieController {
 
         if (!token) {
 
-            console.warn("Aucun token admin");
-
+            window.location.href = "../login.php";
             return {
                 draw: params?.draw ?? 0,
                 recordsTotal: 0,
@@ -24,7 +23,7 @@ export default class CategorieController {
             params
         );
 
-        console.log("RÉPONSE API CATEGORIES :", res);
+       // console.log("RÉPONSE API CATEGORIES :", res);
 
         if (!res.ok) {
 
@@ -48,7 +47,7 @@ export default class CategorieController {
 
     static async initDataTable() {
 
-        console.log("INIT DATATABLE CATEGORIES");
+      //  console.log("INIT DATATABLE CATEGORIES");
 
         const tbody = document.querySelector("#dataTable tbody");
 
@@ -100,18 +99,18 @@ export default class CategorieController {
                             data.order?.[0]?.dir ?? "asc"
                     };
 
-                    console.log(
-                        "PARAMÈTRES DATATABLES CATEGORIES :",
-                        params
-                    );
+                    // console.log(
+                    //     "PARAMÈTRES DATATABLES CATEGORIES :",
+                    //     params
+                    // );
 
                     const result =
                         await CategorieController.getAll(params);
 
-                    console.log(
-                        "RÉSULTAT DATATABLES CATEGORIES :",
-                        result
-                    );
+                    // console.log(
+                    //     "RÉSULTAT DATATABLES CATEGORIES :",
+                    //     result
+                    // );
 
                     callback(result);
 
@@ -266,14 +265,14 @@ export default class CategorieController {
 
                     "pageLength",
 
-                    {
-                        buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
-                        ]
-                    }
+                    // {
+                    //     buttons: [
+                    //         "copy",
+                    //         "excel",
+                    //         "csv",
+                    //         "pdf"
+                    //     ]
+                    // }
 
                 ],
 
@@ -382,9 +381,9 @@ export default class CategorieController {
                     description:
                         document.getElementById("description_modif").value
                 };
-                console.log(token);
+                // console.log(token);
 
-                console.log(data);
+                // console.log(data);
 
                 const res = await CategorieModel.updateCategorie(
                     id_categorie,
@@ -392,7 +391,7 @@ export default class CategorieController {
                     token
                 );
 
-                console.log(res);
+                // console.log(res);
 
                 if (!res.ok) {
 

@@ -31,9 +31,7 @@ export default class ExamenController {
 
         if (!token) {
 
-            console.warn(
-                "Aucun token administrateur"
-            );
+            window.location.href = "../login.php";
 
             return {
                 draw: params?.draw ?? 0,
@@ -49,10 +47,10 @@ export default class ExamenController {
                 params
             );
 
-        console.log(
-            "RÉPONSE API EXAMENS :",
-            res
-        );
+        // console.log(
+        //     "RÉPONSE API EXAMENS :",
+        //     res
+        // );
 
         if (!res.ok) {
 
@@ -83,15 +81,15 @@ export default class ExamenController {
 
     static initDataTable() {
 
-        console.log(
-            "INITIALISATION DATATABLE EXAMENS"
-        );
+        // console.log(
+        //     "INITIALISATION DATATABLE EXAMENS"
+        // );
 
         if ($.fn.DataTable.isDataTable("#dataTable")) {
 
-            console.log(
-                "DataTable examens déjà initialisé"
-            );
+            // console.log(
+            //     "DataTable examens déjà initialisé"
+            // );
 
             return;
         }
@@ -424,13 +422,13 @@ export default class ExamenController {
 
 
             // Vérification
-            console.log("INTITULE :", intitule);
-            console.log("TYPE :", type_examen);
+            // console.log("INTITULE :", intitule);
+            // console.log("TYPE :", type_examen);
             // console.log("COEFFICIENT :", coefficient);
-            console.log("DATE :", date_examen);
-            console.log("HEURE :", heure);
-            console.log("LIEU :", lieu);
-            console.log("CONCOURS :", id_concours);
+            // console.log("DATE :", date_examen);
+            // console.log("HEURE :", heure);
+            // console.log("LIEU :", lieu);
+            // console.log("CONCOURS :", id_concours);
 
 
             // Validation
@@ -474,7 +472,7 @@ export default class ExamenController {
             };
 
 
-            console.log("DATA EXAMEN :", data);
+           // console.log("DATA EXAMEN :", data);
 
 
             const token = AdminController.getToken();
@@ -485,7 +483,7 @@ export default class ExamenController {
             );
 
 
-            console.log("REPONSE API :", res);
+           // console.log("REPONSE API :", res);
 
 
             if (!res.ok) {
@@ -629,8 +627,8 @@ export default class ExamenController {
             };
 
 
-            console.log("ID EXAMEN :", id_examen);
-            console.log("DATA MODIFICATION :", data);
+            // console.log("ID EXAMEN :", id_examen);
+            // console.log("DATA MODIFICATION :", data);
 
 
             const token = AdminController.getToken();
@@ -642,7 +640,7 @@ export default class ExamenController {
             );
 
 
-            console.log("REPONSE UPDATE :", res);
+          //  console.log("REPONSE UPDATE :", res);
 
 
             if (!res.ok) {
@@ -714,7 +712,7 @@ export default class ExamenController {
                     token
                 );
 
-                console.log("REPONSE SUPPRESSION :", res);
+              //  console.log("REPONSE SUPPRESSION :", res);
 
 
                 if (!res.ok) {
@@ -787,6 +785,8 @@ export default class ExamenController {
                 title: "Session expirée",
                 text: "Veuillez vous reconnecter."
             });
+
+            window.location.href = "../login.php";
 
             return;
         }

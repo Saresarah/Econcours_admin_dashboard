@@ -5,304 +5,13 @@ import AdminController from "./AdminController.js";
 
 export default class CandidatController {
 
-    // static async getAll(page = 1, limit = 10) {
-
-    //     const token = AdminController.getToken();
-
-    //     if (!token) {
-    //         console.warn("Aucun token admin");
-
-    //         return {
-    //             candidat: [],
-    //             page: 1,
-    //             limit: 10,
-    //             total: 0,
-    //             totalPages: 0
-    //         };
-    //     }
-
-    //     const res = await CandidatModel.getAllCandidats(
-    //         token,
-    //         page,
-    //         limit
-    //     );
-
-    //     console.log("REPONSE API :", res);
-
-    //     if (!res.ok) {
-
-    //         Swal.fire({
-    //             icon: "error",
-    //             title: "Erreur",
-    //             text: res.data?.error || "Erreur chargement candidats"
-    //         });
-
-    //         return {
-    //             candidat: [],
-    //             page: 1,
-    //             limit: 10,
-    //             total: 0,
-    //             totalPages: 0
-    //         };
-    //     }
-
-    //     return res.data;
-    // }
-
-    // static async initDataTable() {
-
-    //     const tbody = document.getElementById("candidatTableBody");
-
-    //     if (!tbody) {
-    //         console.error("tbody introuvable");
-    //         return;
-    //     }
-
-    //     if ($.fn.DataTable.isDataTable("#dataTable")) {
-    //         $("#dataTable").DataTable().destroy();
-    //     }
-
-    //     $("#dataTable").DataTable({
-
-    //         processing: true,
-
-    //         serverSide: true,
-
-    //         pageLength: 10,
-
-    //         lengthMenu: [10, 25, 50, 100],
-
-    //         ajax: async function (data, callback) {
-
-    //             try {
-
-    //                 const token = AdminController.getToken();
-
-    //                 const start = data.start;
-    //                 const length = data.length;
-
-    //                 const page = Math.floor(start / length) + 1;
-
-    //                 console.log("PAGE DEMANDÉE :", page);
-    //                 console.log("LIMIT :", length);
-
-    //                 const res = await CandidatModel.getAllCandidats(
-    //                     token,
-    //                     page,
-    //                     length
-    //                 );
-
-    //                 console.log("RÉPONSE API :", res);
-
-    //                 if (!res.ok) {
-
-    //                     Swal.fire({
-    //                         icon: "error",
-    //                         title: "Erreur",
-    //                         text: res.data?.error ||
-    //                             "Erreur chargement candidats"
-    //                     });
-
-    //                     callback({
-    //                         draw: data.draw,
-    //                         recordsTotal: 0,
-    //                         recordsFiltered: 0,
-    //                         data: []
-    //                     });
-
-    //                     return;
-    //                 }
-
-    //                 const result = res.data;
-
-    //                 console.log("DONNÉES CANDIDATS :", result);
-
-    //                 const candidats = result.data || [];
-
-    //                 callback({
-
-    //                     draw: data.draw,
-
-    //                     recordsTotal: result.total || 0,
-
-    //                     recordsFiltered: result.total || 0,
-
-    //                     data: candidats.map((data, index) => {
-
-    //                         return [
-    //                             start + index + 1,
-
-    //                             data.nom || "-",
-
-    //                             data.prenom || "-",
-
-    //                             data.numero_cnib || "-",    
-    //                             data.telephone || "-",
-
-    //                             data.email || "-",
-
-    //                             data.type_candidat || "-",
-
-    //                             `
-    //                         <button
-    //                             class="btn btn-warning btn-sm edit-candidat"
-    //                             data-id="${data.id_candidat}"
-    //                             data-email="${data.email || ""}"
-    //                             data-nom-jeune-fille="${data.nom_jeune_fille || ""}"
-    //                             data-emploi="${data.emploi || ""}"
-    //                             data-ministere="${data.ministere || ""}"
-    //                             data-matricule="${data.matricule || ""}">
-    //                             <i class="fa fa-edit"></i>
-    //                         </button>
-    //                         `,
-
-    //                             `
-    //                         <button
-    //                             class="btn btn-danger btn-sm delete-candidat"
-    //                             data-id="${data.id_candidat}">
-    //                             <i class="fa fa-trash"></i>
-    //                         </button>
-    //                         `,
-
-    //                             `
-    //                         <button
-    //                             class="btn btn-info btn-sm detail-candidat"
-    //                             data-id="${data.id_candidat}">
-    //                             <i class="fa fa-eye"></i>
-    //                         </button>
-    //                         `
-    //                         ];
-
-    //                     })
-
-    //                 });
-
-    //             } catch (error) {
-
-    //                 console.error(
-    //                     "Erreur DataTable candidats :",
-    //                     error
-    //                 );
-
-    //                 callback({
-    //                     draw: data.draw,
-    //                     recordsTotal: 0,
-    //                     recordsFiltered: 0,
-    //                     data: []
-    //                 });
-
-    //                 Swal.fire({
-    //                     icon: "error",
-    //                     title: "Erreur",
-    //                     text: "Impossible de charger les candidats"
-    //                 });
-
-    //             }
-
-    //         },
-
-    //         columns: [
-
-    //             {
-    //                 title: "#",
-    //                 className: "text-center"
-    //             },
-
-    //             {
-    //                 title: "Nom",
-    //                 className: "text-center"
-    //             },
-
-    //             {
-    //                 title: "Prénom",
-    //                 className: "text-center"
-    //             },
-
-    //             {
-    //                 title: "CNIB",
-    //                 className: "text-center"
-    //             },
-
-    //             {
-    //                 title: "Téléphone",
-    //                 className: "text-center"
-    //             },
-
-    //             {
-    //                 title: "Email",
-    //                 className: "text-center"
-    //             },
-
-    //             {
-    //                 title: "Type candidat",
-    //                 className: "text-center"
-    //             },
-
-    //             {
-    //                 title: "Modifier",
-    //                 className: "text-center",
-    //                 orderable: false,
-    //                 searchable: false
-    //             },
-
-    //             {
-    //                 title: "Supprimer",
-    //                 className: "text-center",
-    //                 orderable: false,
-    //                 searchable: false
-    //             },
-
-    //             {
-    //                 title: "Détails",
-    //                 className: "text-center",
-    //                 orderable: false,
-    //                 searchable: false
-    //             }
-
-    //         ],
-
-    //         responsive: true,
-
-    //         searching: true,
-
-    //         ordering: true,
-
-    //         language: {
-    //             url: "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
-    //         },
-
-    //         layout: {
-
-    //             topStart: [
-    //                 "pageLength",
-    //                 {
-    //                     buttons: [
-    //                         "copy",
-    //                         "excel",
-    //                         "csv",
-    //                         "pdf"
-    //                     ]
-    //                 }
-    //             ],
-
-    //             topEnd: "search",
-
-    //             bottomStart: "info",
-
-    //             bottomEnd: "paging"
-
-    //         }
-
-    //     });
-
-    // }
     static async getAll(params) {
 
         const token = AdminController.getToken();
 
         if (!token) {
-            console.warn("Aucun token admin");
-
+            window.location.href = "login.php";
+        
             return {
                 draw: params?.draw ?? 0,
                 recordsTotal: 0,
@@ -316,7 +25,7 @@ export default class CandidatController {
             params
         );
 
-        console.log("REPONSE API :", res);
+        //console.log("REPONSE API :", res);
 
         if (!res.ok) {
 
@@ -375,6 +84,7 @@ export default class CandidatController {
                             recordsFiltered: 0,
                             data: []
                         });
+                        window.location.href = "../login.php";
 
                         return;
                     }
@@ -393,14 +103,14 @@ export default class CandidatController {
                         orderDir: data.order?.[0]?.dir ?? "asc"
                     };
 
-                    console.log("PARAMÈTRES DATATABLES :", params);
+                    //console.log("PARAMÈTRES DATATABLES :", params);
 
                     const res = await CandidatModel.getAllCandidats(
                         token,
                         params
                     );
 
-                    console.log("RÉPONSE API :", res);
+                    //console.log("RÉPONSE API :", res);
 
                     if (!res.ok) {
 
@@ -423,16 +133,16 @@ export default class CandidatController {
 
                     const result = res.data;
 
-                    console.log("RÉSULTAT DATATABLES :", result);
+                    // console.log("RÉSULTAT DATATABLES :", result);
 
                     callback(result);
 
                 } catch (error) {
 
-                    console.error(
-                        "Erreur DataTable candidats :",
-                        error
-                    );
+                    // console.error(
+                    //     "Erreur DataTable candidats :",
+                    //     error
+                    // );
 
                     callback({
                         draw: data.draw,
@@ -648,7 +358,7 @@ export default class CandidatController {
 
             const res = await CandidatModel.DeleteCandidat(token, id);
 
-            console.log(res);
+            // console.log(res);
 
             if (!res?.ok) {
                 Swal.fire("Erreur", "Suppression impossible", "error");
@@ -748,7 +458,7 @@ export default class CandidatController {
 
             const res = await CandidatModel.getDetailCandidat(token, id);
 
-            console.log("DETAIL RESPONSE :", res);
+            // console.log("DETAIL RESPONSE :", res);
 
             if (!res.ok) {
 
@@ -938,7 +648,7 @@ ${concoursHTML}
 
             const data = Object.fromEntries(formData.entries());
 
-            console.log("DATA ENVOYÉE :", data);
+            // console.log("DATA ENVOYÉE :", data);
 
             const res = await CandidatModel.createCandidat(token, data);
 
@@ -974,12 +684,13 @@ ${concoursHTML}
             AdminController.getToken();
 
         if (!token) {
-
             Swal.fire({
                 icon: "warning",
                 title: "Session expirée",
                 text: "Veuillez vous reconnecter."
             });
+
+            window.location.href = "../login.php";
 
             return;
         }
@@ -1046,10 +757,10 @@ ${concoursHTML}
 
         } catch (error) {
 
-            console.error(
-                "Erreur export Excel :",
-                error
-            );
+            // console.error(
+            //     "Erreur export Excel :",
+            //     error
+            // );
 
             Swal.close();
 
@@ -1075,6 +786,8 @@ ${concoursHTML}
                 text:
                     "Veuillez vous reconnecter."
             });
+
+            window.location.href = "../login.php";
 
             return;
         }
@@ -1171,6 +884,8 @@ ${concoursHTML}
                 title: "Session expirée",
                 text: "Veuillez vous reconnecter."
             });
+
+            window.location.href = "../login.php";
 
             return;
         }

@@ -50,7 +50,7 @@
 
                                         <div class="col mr-2">
                                             <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Nombre de candidats inscrits à des concours
+                                                Nombre total des inscriptions
                                             </div>
 
                                             <div id="totalCandidats"

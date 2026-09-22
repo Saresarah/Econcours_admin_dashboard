@@ -10,105 +10,109 @@ export default class ResultatController {
 
     }
 
-    static async getAll(page = 1, limit = 10) {
+    static async getAll(params = {}) {
 
-        const token = AdminController.getToken();
+        const token =
+            AdminController.getToken();
 
         if (!token) {
-            console.warn("Aucun token administrateur");
+
+           window.location.href = "../login.php";
 
             return {
-                data: [],
-                page: 1,
-                limit: 10,
-                total: 0,
-                totalPages: 0
+                draw:
+                    params.draw ?? 0,
+
+                recordsTotal: 0,
+
+                recordsFiltered: 0,
+
+                data: []
             };
         }
 
-        const res = await ResultatModel.getAllResultats(
-            token,
-            page,
-            limit
-        );
+        const res =
+            await ResultatModel.getAllResultats(
+                token,
+                params
+            );
 
-        console.log("REPONSE API RESULTATS :", res);
+        // console.log(
+        //     "REPONSE API RESULTATS :",
+        //     res
+        // );
 
         if (!res.ok) {
 
-            console.error(
-                res.data?.error || "Erreur chargement résultats"
-            );
-
             Swal.fire({
                 icon: "error",
+
                 title: "Erreur",
-                text: res.data?.error ||
+
+                text:
+                    res.data?.error ||
+                    res.data?.message ||
                     "Impossible de charger les résultats"
             });
 
             return {
-                data: [],
-                page: 1,
-                limit: 10,
-                total: 0,
-                totalPages: 0
+                draw:
+                    params.draw ?? 0,
+
+                recordsTotal: 0,
+
+                recordsFiltered: 0,
+
+                data: []
             };
         }
 
-        let resultats = [];
-
-        if (Array.isArray(res.data?.data)) {
-
-            resultats = res.data.data;
-
-        } else if (res.data?.resultat) {
-
-            try {
-
-                resultats = JSON.parse(res.data.resultat);
-
-            } catch (error) {
-
-                console.error(
-                    "ERREUR PARSING RESULTATS :",
-                    error
-                );
-
-                resultats = [];
-            }
-        }
-
-        console.log(
-            "RESULTATS NORMALISES :",
-            resultats
-        );
-
         return {
-            page: res.data?.page || page,
-            limit: res.data?.limit || limit,
-            total: res.data?.total || resultats.length,
-            totalPages:
-                res.data?.totalPages ||
-                Math.ceil(resultats.length / limit),
-            data: resultats
+            draw:
+                res.data?.draw ??
+                params.draw ??
+                0,
+
+            recordsTotal:
+                res.data?.recordsTotal ?? 0,
+
+            recordsFiltered:
+                res.data?.recordsFiltered ?? 0,
+
+            data:
+                Array.isArray(res.data?.data)
+                    ? res.data.data
+                    : []
         };
     }
 
-
     static async initDataTable() {
 
-        console.log("INITIALISATION DATATABLE RESULTATS");
+        // console.log(
+        //     "INITIALISATION DATATABLE RESULTATS"
+        // );
 
-        const table = $("#dataTable");
+        const table =
+            $("#dataTable");
 
         if (!table.length) {
-            console.error("Table résultats introuvable");
+
+            console.error(
+                "Table résultats introuvable"
+            );
+
             return;
         }
 
-        if ($.fn.DataTable.isDataTable("#dataTable")) {
-            table.DataTable().destroy();
+        if (
+            $.fn.DataTable.isDataTable(
+                "#dataTable"
+            )
+        ) {
+
+            table
+                .DataTable()
+                .destroy();
         }
 
         table.DataTable({
@@ -131,213 +135,135 @@ export default class ResultatController {
             ordering: true,
 
             info: true,
-            ajax: async function (data, callback) {
+
+            searchDelay: 500,
+
+            ajax: async function (
+                data,
+                callback
+            ) {
 
                 try {
 
-                    const token = AdminController.getToken();
+                    const params = {
 
-                    if (!token) {
-                        console.error("Aucun token administrateur");
+                        draw:
+                            data.draw,
 
-                        callback({
-                            draw: data.draw,
-                            recordsTotal: 0,
-                            recordsFiltered: 0,
-                            data: []
-                        });
+                        start:
+                            data.start,
 
-                        return;
-                    }
+                        length:
+                            data.length,
 
-                    const start = data.start || 0;
-                    const length = data.length || 10;
+                        search:
+                            data.search?.value ||
+                            "",
 
-                    const page =
-                        Math.floor(start / length) + 1;
+                        orderColumn:
+                            data.order?.[0]?.column ??
+                            0,
 
-                    console.log("PAGE DEMANDEE :", page);
-                    console.log("LIMIT :", length);
+                        orderDir:
+                            data.order?.[0]?.dir ??
+                            "desc"
+                    };
+
+                    // console.log(
+                    //     "PARAMETRES RESULTATS :",
+                    //     params
+                    // );
 
                     const result =
                         await ResultatController.getAll(
-                            page,
-                            length
+                            params
                         );
 
-                    console.log(
-                        "REPONSE RESULTAT CONTROLLER :",
-                        result
-                    );
+                    // console.log(
+                    //     "RESULTAT CONTROLLER :",
+                    //     result
+                    // );
 
-                    const resultats = Array.isArray(result.data)
-                        ? result.data
-                        : [];
-
-                    console.log(
-                        "RESULTATS EXTRAITS :",
-                        resultats
-                    );
-
-                    if (!resultats.length) {
-
-                        console.warn(
-                            "Aucun résultat pour cette page"
-                        );
-
-                        callback({
-                            draw: data.draw,
-                            recordsTotal: result.total || 0,
-                            recordsFiltered: result.total || 0,
-                            data: []
-                        });
-
-                        return;
-                    }
-
-                    const concoursIds = [
-                        ...new Set(
-                            resultats
-                                .map(resultat =>
-                                    Number(resultat.id_concours)
-                                )
-                                .filter(id =>
-                                    !isNaN(id)
-                                )
+                    const resultats =
+                        Array.isArray(
+                            result?.data
                         )
-                    ];
+                            ? result.data
+                            : [];
 
-                    console.log(
-                        "ID CONCOURS TROUVES :",
-                        concoursIds
-                    );
+                  //  console.log("RESULTATS RECUS :", resultats);
 
-                    const concoursMap = {};
+                    const lignes = resultats.map((item, index) => {
 
-                    let pageConcours = 1;
-                    let totalPagesConcours = 1;
+                        const concours = item.concours || {};
 
-                    while (
-                        pageConcours <= totalPagesConcours
-                    ) {
+                        // console.log("ITEM RESULTAT :", item);
+                        // console.log("ID CONCOURS :", item.id_concours);
 
-                        const concoursResponse =
-                            await ConcoursModel.getAllConcours(
-                                token,
-                                pageConcours,
-                                10
-                            );
+                        return [
+                            params.start + index + 1,
 
-                        console.log(
-                            `CONCOURS PAGE ${pageConcours} :`,
-                            concoursResponse
-                        );
+                            `
+            <strong>
+                ${concours.nom || "-"}
+            </strong>
 
-                        if (!concoursResponse.ok) {
+            ${concours.annee
+                                ? `
+                        <br>
+                        <small class="text-muted">
+                            ${concours.annee}
+                        </small>
+                    `
+                                : ""
+                            }
+        `,
 
-                            console.error(
-                                "Erreur récupération concours"
-                            );
-
-                            break;
-                        }
-
-                        const concoursData =
-                            concoursResponse.data || {};
-
-                        const concours =
-                            Array.isArray(concoursData.data)
-                                ? concoursData.data
-                                : [];
-
-                        concours.forEach(concoursItem => {
-
-                            const id =
-                                Number(
-                                    concoursItem.id_concours
-                                );
-
-                            if (!isNaN(id)) {
-                                concoursMap[id] =
-                                    concoursItem;
+                            `
+            <span class="badge badge-info">
+                ${Array.isArray(item.resultats)
+                                ? item.resultats.length
+                                : 0
                             }
 
-                        });
-
-                        totalPagesConcours =
-                            Number(
-                                concoursData.totalPages ||
-                                concoursData.total_pages ||
-                                1
-                            );
-
-                        const tousTrouves =
-                            concoursIds.every(
-                                id => concoursMap[id]
-                            );
-
-                        if (tousTrouves) {
-                            break;
-                        }
-
-                        pageConcours++;
-                    }
-
-                    console.log(
-                        "CONCOURS MAP :",
-                        concoursMap
-                    );
-
-                    const concoursAvecResultats =
-                        concoursIds
-                            .map(id => concoursMap[id])
-                            .filter(Boolean);
-
-                    console.log(
-                        "CONCOURS AVEC RESULTATS :",
-                        concoursAvecResultats
-                    );
-
-                    const lignes =
-                        concoursAvecResultats.map(
-                            (concours, index) => {
-
-                                return [
-
-                                    start + index + 1,
-
-                                    concours.nom || "-",
-
-                                    `
-                        <button
-                            type="button"
-                            class="btn btn-primary btn-sm btn-afficher-resultats"
-                            data-id="${concours.id_concours}">
-                            <i class="fas fa-eye"></i>
-                            Afficher
-                        </button>
-                        `
-                                ];
+                résultat${Array.isArray(item.resultats) &&
+                                item.resultats.length > 1
+                                ? "s"
+                                : ""
                             }
-                        );
+            </span>
+        `,
 
-                    console.log(
-                        "LIGNES DATATABLE :",
-                        lignes
-                    );
+                            `
+            <button
+                type="button"
+                class="btn btn-primary btn-sm btn-afficher-resultats"
+                data-id="${item.id_concours}"
+                title="Afficher les résultats"
+            >
+                <i class="fas fa-eye"></i>
+                Afficher
+            </button>
+        `
+                        ];
+                    });
 
                     callback({
 
-                        draw: data.draw,
+                        draw:
+                            result?.draw ??
+                            data.draw,
 
                         recordsTotal:
-                            result.total || resultats.length,
+                            result?.recordsTotal ??
+                            0,
 
                         recordsFiltered:
-                            result.total || resultats.length,
+                            result?.recordsFiltered ??
+                            0,
 
-                        data: lignes
-
+                        data:
+                            lignes
                     });
 
                 } catch (error) {
@@ -349,14 +275,16 @@ export default class ResultatController {
 
                     callback({
 
-                        draw: data.draw,
+                        draw:
+                            data.draw,
 
-                        recordsTotal: 0,
+                        recordsTotal:
+                            0,
 
-                        recordsFiltered: 0,
+                        recordsFiltered:
+                            0,
 
                         data: []
-
                     });
                 }
             },
@@ -365,19 +293,48 @@ export default class ResultatController {
 
                 {
                     title: "#",
-                    className: "text-center"
+
+                    className:
+                        "text-center",
+
+                    orderable:
+                        false,
+
+                    searchable:
+                        false
                 },
 
                 {
                     title: "Concours",
-                    className: "text-center"
+
+                    className:
+                        "text-center"
+                },
+
+                {
+                    title: "Nombre de résultats",
+
+                    className:
+                        "text-center",
+
+                    orderable:
+                        false,
+
+                    searchable:
+                        false
                 },
 
                 {
                     title: "Actions",
-                    className: "text-center",
-                    orderable: false,
-                    searchable: false
+
+                    className:
+                        "text-center",
+
+                    orderable:
+                        false,
+
+                    searchable:
+                        false
                 }
 
             ],
@@ -386,73 +343,76 @@ export default class ResultatController {
 
                 url:
                     "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
-
             },
 
             layout: {
 
                 topStart: [
                     "pageLength",
-                    {
-                        buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
-                        ]
-                    }
                 ],
 
-                topEnd: "search",
+                topEnd:
+                    "search",
 
-                bottomStart: "info",
+                bottomStart:
+                    "info",
 
-                bottomEnd: "paging"
-
+                bottomEnd:
+                    "paging"
             },
 
-            drawCallback: function () {
+            drawCallback:
+                function () {
 
-                ResultatController.initButtons();
-
-            }
-
+                    ResultatController
+                        .initButtons();
+                }
         });
     }
-
     static initButtons() {
 
-        document.addEventListener(
-            "click",
-            (e) => {
-
-                const btn =
-                    e.target.closest(
-                        ".btn-afficher-resultats"
-                    );
-
-                if (!btn) return;
+        $(document)
+            .off("click", ".btn-afficher-resultats")
+            .on("click", ".btn-afficher-resultats", function () {
 
                 const idConcours =
-                    btn.dataset.id;
+                    $(this).attr("data-id");
+
+                // console.log(
+                //     "ID CONCOURS CLIQUÉ :",
+                //     idConcours
+                // );
+
+                if (!idConcours || idConcours === "undefined") {
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Erreur",
+                        text: "Impossible de récupérer l'identifiant du concours."
+                    });
+
+                    return;
+                }
 
                 window.location.href =
-                    `details_resultats.php?id_concours=${idConcours}`;
-
-            }
-        );
-
+                    `details_resultats.php?id_concours=${encodeURIComponent(idConcours)}`;
+            });
     }
 
     static async initDetails() {
 
-        console.log("INITIALISATION DETAILS RESULTATS");
+        // console.log(
+        //     "INITIALISATION DETAILS RESULTATS"
+        // );
 
         const params =
-            new URLSearchParams(window.location.search);
+            new URLSearchParams(
+                window.location.search
+            );
 
         const idConcours =
             params.get("id_concours");
+      //  console.log("ID CONCOURS DETAILS :", idConcours)
 
         if (!idConcours) {
 
@@ -463,227 +423,46 @@ export default class ResultatController {
             Swal.fire({
                 icon: "error",
                 title: "Erreur",
-                text: "Aucun concours sélectionné."
+                text:
+                    "Aucun concours sélectionné."
             });
 
             return;
         }
 
-        console.log(
-            "ID CONCOURS :",
-            idConcours
-        );
+        // console.log(
+        //     "ID CONCOURS :",
+        //     idConcours
+        // );
 
-        const response =
-            await this.getAll(1, 100);
+        const table =
+            $("#dataTable");
 
-        console.log(
-            "REPONSE TOUS LES RESULTATS :",
-            response
-        );
-
-        const resultats =
-            Array.isArray(response?.data)
-                ? response.data
-                : [];
-
-        console.log(
-            "TOUS LES RESULTATS :",
-            resultats
-        );
-
-        const resultatsConcours =
-            resultats.filter(resultat =>
-                Number(resultat.id_concours) ===
-                Number(idConcours)
-            );
-
-        console.log(
-            "RESULTATS DU CONCOURS :",
-            resultatsConcours
-        );
-
-        const tbody =
-            document.querySelector(
-                "#dataTable tbody"
-            );
-
-        if (!tbody) {
+        if (!table.length) {
 
             console.error(
-                "tbody détails résultats introuvable"
+                "Table détails résultats introuvable"
             );
 
             return;
         }
-
-        tbody.innerHTML = "";
 
         const token =
             AdminController.getToken();
 
-        let concoursInfo = null;
+        if (!token) {
 
-        let pageConcours = 1;
+            Swal.fire({
+                icon: "warning",
+                title: "Session expirée",
+                text:
+                    "Veuillez vous reconnecter."
+            });
 
-        let totalPagesConcours = 1;
-
-        while (
-            pageConcours <=
-            totalPagesConcours
-        ) {
-
-            const concoursResponse =
-                await ConcoursModel.getAllConcours(
-                    token,
-                    pageConcours,
-                    10
-                );
-
-            console.log(
-                `CONCOURS PAGE ${pageConcours} :`,
-                concoursResponse
-            );
-
-            if (!concoursResponse.ok) {
-                break;
-            }
-
-            const concoursData =
-                concoursResponse.data;
-
-            const concours =
-                concoursData?.data || [];
-
-            totalPagesConcours =
-                concoursData?.totalPages || 1;
-
-            concoursInfo =
-                concours.find(
-                    c =>
-                        Number(c.id_concours) ===
-                        Number(idConcours)
-                );
-
-            if (concoursInfo) {
-                break;
-            }
-
-            pageConcours++;
-        }
-
-        console.log(
-            "CONCOURS POUR DETAILS :",
-            concoursInfo
-        );
-
-        const nomConcours =
-            document.getElementById(
-                "nomConcours"
-            );
-
-        if (nomConcours) {
-
-            nomConcours.textContent =
-                concoursInfo?.nom ||
-                "Concours";
-        }
-
-        if (resultatsConcours.length === 0) {
-
-            tbody.innerHTML = `
-            <tr>
-                <td colspan="9" class="text-center">
-                    Aucun résultat disponible pour ce concours.
-                </td>
-            </tr>
-        `;
+            window.location.href = "../login.php";
 
             return;
         }
-
-        resultatsConcours.forEach(
-            (resultat, index) => {
-
-                const noteSp =
-                    resultat.note_sp != null
-                        ? Number(
-                            resultat.note_sp
-                        ).toFixed(2)
-                        : "-";
-
-                const noteCg =
-                    resultat.note_cg != null
-                        ? Number(
-                            resultat.note_cg
-                        ).toFixed(2)
-                        : "-";
-
-                const moyenne =
-                    resultat.moyenne != null
-                        ? Number(
-                            resultat.moyenne
-                        ).toFixed(2)
-                        : "-";
-
-                const tr =
-                    document.createElement("tr");
-
-                tr.innerHTML = `
-                <td class="text-center">
-                    ${index + 1}
-                </td>
-
-                <td>
-                    ${resultat.candidat?.nom ?? "-"}
-                </td>
-
-                <td>
-                    ${resultat.candidat?.prenom ?? "-"}
-                </td>
-
-                <td class="text-center">
-                    ${noteSp}
-                </td>
-
-                <td class="text-center">
-                    ${noteCg}
-                </td>
-
-                <td class="text-center">
-                    <strong>
-                        ${moyenne}
-                    </strong>
-                </td>
-
-                <td class="text-center">
-                    ${resultat.statut ?? "-"}
-                </td>
-
-                <td class="text-center">
-                    <button
-                        type="button"
-                        class="btn btn-info btn-sm btn-copie-originale"
-                        disabled>
-                        <i class="fas fa-file-alt"></i>
-                        Afficher
-                    </button>
-                </td>
-
-                <td class="text-center">
-                    <button
-                        type="button"
-                        class="btn btn-success btn-sm btn-copie-corrigee"
-                        disabled>
-                        <i class="fas fa-file-alt"></i>
-                        Afficher
-                    </button>
-                </td>
-            `;
-
-                tbody.appendChild(tr);
-            }
-        );
 
         if (
             $.fn.DataTable.isDataTable(
@@ -691,16 +470,18 @@ export default class ResultatController {
             )
         ) {
 
-            $("#dataTable")
+            table
                 .DataTable()
                 .destroy();
         }
 
-        $("#dataTable").DataTable({
+        table.DataTable({
+
+            processing: true,
+
+            serverSide: true,
 
             responsive: true,
-
-            paging: true,
 
             pageLength: 10,
 
@@ -715,11 +496,321 @@ export default class ResultatController {
 
             info: true,
 
+            searchDelay: 500,
+
+            ajax: async function (
+                data,
+                callback
+            ) {
+
+                try {
+
+                    const params = {
+
+                        draw:
+                            data.draw,
+
+                        start:
+                            data.start,
+
+                        length:
+                            data.length,
+
+                        search:
+                            data.search?.value ||
+                            "",
+
+                        orderColumn:
+                            data.order?.[0]?.column ??
+                            0,
+
+                        orderDir:
+                            data.order?.[0]?.dir ??
+                            "asc"
+                    };
+
+                    // console.log(
+                    //     "PARAMETRES DETAILS :",
+                    //     params
+                    // );
+
+                    const response =
+                        await ResultatModel.detailResultat(
+                            token,
+                            idConcours,
+                            params
+                        );
+
+                    // console.log(
+                    //     "REPONSE DETAIL RESULTAT :",
+                    //     response
+                    // );
+
+                    if (!response.ok) {
+
+                        callback({
+
+                            draw:
+                                data.draw,
+
+                            recordsTotal:
+                                0,
+
+                            recordsFiltered:
+                                0,
+
+                            data: []
+                        });
+
+                        return;
+                    }
+
+                    const result =
+                        response.data || {};
+
+                    const resultats =
+                        Array.isArray(
+                            result.data
+                        )
+                            ? result.data
+                            : [];
+
+                    const rows =
+                        resultats.map(
+                            (
+                                resultat,
+                                index
+                            ) => {
+
+                                const candidat =
+                                    resultat.candidat ||
+                                    {};
+
+                                const noteSp =
+                                    resultat.note_sp != null
+                                        ? Number(
+                                            resultat.note_sp
+                                        ).toFixed(2)
+                                        : "-";
+
+                                const noteCg =
+                                    resultat.note_cg != null
+                                        ? Number(
+                                            resultat.note_cg
+                                        ).toFixed(2)
+                                        : "-";
+
+                                const moyenne =
+                                    resultat.moyenne != null
+                                        ? Number(
+                                            resultat.moyenne
+                                        ).toFixed(2)
+                                        : "-";
+
+                                const statut =
+                                    resultat.moyenne != null
+                                        ? Number(
+                                            resultat.moyenne
+                                        ) >= 10
+                                            ? "REUSSI"
+                                            : "NON REUSSI"
+                                        : "-";
+
+                                return [
+
+                                    data.start +
+                                    index +
+                                    1,
+
+                                    candidat.nom ||
+                                    "-",
+
+                                    candidat.prenom ||
+                                    "-",
+
+                                    noteCg,
+
+                                    noteSp,
+
+                                    `
+                                    <strong>
+                                        ${moyenne}
+                                    </strong>
+                                `,
+
+                                    `
+                                    <span class="badge ${statut === "REUSSI"
+                                        ? "badge-success"
+                                        : statut === "NON REUSSI"
+                                            ? "badge-danger"
+                                            : "badge-secondary"
+                                    }">
+                                        ${statut}
+                                    </span>
+                                `,
+
+                                    `
+                                    <button
+                                        type="button"
+                                        class="btn btn-info btn-sm"
+                                        disabled
+                                    >
+                                        <i class="fas fa-file-alt"></i>
+                                        Afficher
+                                    </button>
+                                `,
+
+                                    `
+                                    <button
+                                        type="button"
+                                        class="btn btn-success btn-sm"
+                                        disabled
+                                    >
+                                        <i class="fas fa-file-alt"></i>
+                                        Afficher
+                                    </button>
+                                `
+                                ];
+                            }
+                        );
+
+                    callback({
+
+                        draw:
+                            result.draw ??
+                            data.draw,
+
+                        recordsTotal:
+                            result.recordsTotal ??
+                            0,
+
+                        recordsFiltered:
+                            result.recordsFiltered ??
+                            0,
+
+                        data:
+                            rows
+                    });
+
+                } catch (error) {
+
+                    console.error(
+                        "ERREUR DETAILS RESULTATS :",
+                        error
+                    );
+
+                    callback({
+
+                        draw:
+                            data.draw,
+
+                        recordsTotal:
+                            0,
+
+                        recordsFiltered:
+                            0,
+
+                        data: []
+                    });
+                }
+            },
+
+            columns: [
+
+                {
+                    title: "#",
+
+                    className:
+                        "text-center",
+
+                    orderable:
+                        false,
+
+                    searchable:
+                        false
+                },
+
+                {
+                    title: "Nom",
+
+                    className:
+                        "text-center"
+                },
+
+                {
+                    title: "Prénom",
+
+                    className:
+                        "text-center"
+                },
+
+                {
+                    title: "Note culture générale",
+
+                    className:
+                        "text-center"
+                },
+
+                {
+                    title: "Note matière spécifique",
+
+                    className:
+                        "text-center"
+                },
+
+
+                {
+                    title: "Moyenne générale",
+
+                    className:
+                        "text-center"
+                },
+
+                {
+                    title: "Statut",
+
+                    className:
+                        "text-center",
+
+                    orderable:
+                        false,
+
+                    searchable:
+                        false
+                },
+
+                {
+                    title: "Copie originale",
+
+                    className:
+                        "text-center",
+
+                    orderable:
+                        false,
+
+                    searchable:
+                        false
+                },
+
+                {
+                    title: "Copie corrigée",
+
+                    className:
+                        "text-center",
+
+                    orderable:
+                        false,
+
+                    searchable:
+                        false
+                }
+
+            ],
+
             language: {
 
                 url:
                     "https://cdn.datatables.net/plug-ins/1.13.7/i18n/fr-FR.json"
-
             },
 
             layout: {
@@ -728,10 +819,41 @@ export default class ResultatController {
                     "pageLength",
                     {
                         buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
+                            {
+                                text: '<i class="fas fa-file-excel me-1"></i> Excel',
+                                className: "btn btn-success",
+                                action: async function () {
+
+                                    await ResultatController.exportResultat(
+                                        idConcours,
+                                        "excel"
+                                    );
+                                }
+                            },
+
+                            {
+                                text: '<i class="fas fa-file-word me-1"></i> Word',
+                                className: "btn btn-primary",
+                                action: async function () {
+
+                                    await ResultatController.exportResultat(
+                                        idConcours,
+                                        "word"
+                                    );
+                                }
+                            },
+
+                            {
+                                text: '<i class="fas fa-file-pdf me-1"></i> PDF',
+                                className: "btn btn-danger",
+                                action: async function () {
+
+                                    await ResultatController.exportResultat(
+                                        idConcours,
+                                        "pdf"
+                                    );
+                                }
+                            }
                         ]
                     }
                 ],
@@ -741,10 +863,77 @@ export default class ResultatController {
                 bottomStart: "info",
 
                 bottomEnd: "paging"
-
             }
-
         });
     }
+    static async exportResultat(
+        idConcours,
+        format
+    ) {
+        try {
 
+            const token =
+                AdminController.getToken();
+
+            if (!token) {
+
+                Swal.fire({
+                    icon: "warning",
+                    title: "Session expirée",
+                    text:
+                        "Veuillez vous reconnecter."
+                });
+                window.location.href = "../login.php";
+
+                return;
+            }
+
+            const blob =
+                await ResultatModel.exportResultat(
+                    token,
+                    idConcours,
+                    format
+                );
+
+            const url =
+                window.URL.createObjectURL(blob);
+
+            const link =
+                document.createElement("a");
+
+            link.href = url;
+
+            const extension =
+                format === "excel"
+                    ? "xlsx"
+                    : format === "word"
+                        ? "docx"
+                        : "pdf";
+
+            link.download =
+                `resultats_${idConcours}.${extension}`;
+
+            document.body.appendChild(link);
+
+            link.click();
+
+            link.remove();
+
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+
+            console.error(
+                "Erreur export résultats :",
+                error
+            );
+
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text:
+                    "Impossible de générer le fichier."
+            });
+        }
+    }
 }

@@ -1,5 +1,4 @@
 import AdminModel from "../models/AdminModel.js";
-import Alert from "../pages/assets/utils/alert.js";
 
 export default class AdminController {
 
@@ -65,12 +64,16 @@ export default class AdminController {
 
         if (!res.ok) {
 
-            Alert.error(res.data.error || res.data.message || "Erreur inscription");
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: res.data?.error ||
+                    "Erreur chargement candidats"
+            });
 
-            return false;
+
+            return;
         }
-
-        Alert.success(res.data.message);
 
         window.location.href = "../login.php";
 
@@ -139,7 +142,7 @@ export default class AdminController {
             return true;
 
         } catch (err) {
-            console.log(err);
+            //console.log(err);
 
             errorEl.style.display = "block";
             errorEl.textContent = "Erreur serveur";
@@ -155,8 +158,14 @@ export default class AdminController {
         const res = await AdminModel.getDashboard(token);
 
         if (!res.ok) {
-            Alert.error("Erreur chargement dashboard");
-            return null;
+            Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: res.data?.error ||
+                    "Erreur chargement dashboard"
+            });
+
+            return;
         }
 
         return res.data;
@@ -183,10 +192,10 @@ export default class AdminController {
                 params
             );
 
-        console.log(
-            "RÉPONSE API ADMINS :",
-            res
-        );
+        // console.log(
+        //     "RÉPONSE API ADMINS :",
+        //     res
+        // );
 
         if (!res.ok) {
 
@@ -211,9 +220,9 @@ export default class AdminController {
 
     static loadAdmins() {
 
-        console.log(
-            "INITIALISATION DATATABLE ADMINS"
-        );
+        // console.log(
+        //     "INITIALISATION DATATABLE ADMINS"
+        // );
 
         this.initDataTable();
     }
@@ -221,9 +230,9 @@ export default class AdminController {
     static initDataTable() {
 
         if ($.fn.DataTable.isDataTable("#adminTable")) {
-            console.log(
-                "DataTable admins déjà initialisé"
-            );
+            // console.log(
+            //     "DataTable admins déjà initialisé"
+            // );
             return;
         }
 
@@ -243,11 +252,6 @@ export default class AdminController {
 
             ajax: async function (data, callback) {
 
-                console.log(
-                    "1️⃣ DATATABLE → REQUÊTE ADMINS :",
-                    data
-                );
-
                 try {
 
                     const params = {
@@ -257,30 +261,16 @@ export default class AdminController {
                         search: data.search?.value || ""
                     };
 
-                    console.log(
-                        "2️⃣ PARAMÈTRES ENVOYÉS :",
-                        params
-                    );
-
                     const result =
                         await AdminController.getAll(
                             params
                         );
-
-                    console.log(
-                        "3️⃣ RÉPONSE CONTROLLER :",
-                        result
-                    );
 
                     const admins =
                         Array.isArray(result?.data)
                             ? result.data
                             : [];
 
-                    console.log(
-                        "4️⃣ ADMINS :",
-                        admins
-                    );
 
                     const rows = admins.map(
                         (admin, index) => {
@@ -330,11 +320,6 @@ export default class AdminController {
                         }
                     );
 
-                    console.log(
-                        "5️⃣ LIGNES DATATABLE :",
-                        rows
-                    );
-
                     callback({
                         draw: data.draw,
 
@@ -347,17 +332,9 @@ export default class AdminController {
                         data: rows
                     });
 
-                    console.log(
-                        "6️⃣ CALLBACK DATATABLE APPELÉ"
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        "❌ ERREUR DATATABLE ADMINS :",
-                        error
-                    );
-
+                } catch (error) {      
+                      console.log (error);
+                    
                     callback({
                         draw: data.draw,
                         recordsTotal: 0,
@@ -435,14 +412,14 @@ export default class AdminController {
             layout: {
                 topStart: [
                     "pageLength",
-                    {
-                        buttons: [
-                            "copy",
-                            "excel",
-                            "csv",
-                            "pdf"
-                        ]
-                    }
+                    // {
+                    //     buttons: [
+                    //         "copy",
+                    //         "excel",
+                    //         "csv",
+                    //         "pdf"
+                    //     ]
+                    // }
                 ],
 
                 topEnd: "search",
@@ -511,7 +488,7 @@ export default class AdminController {
 
             const id_admin = btn.dataset.id;
 
-            console.log("ID ADMIN =", id_admin);
+            // console.log("ID ADMIN =", id_admin);
 
             const result = await Swal.fire({
                 title: "Supprimer cet administrateur ?",
@@ -585,7 +562,7 @@ export default class AdminController {
                 role: document.getElementById("edit_role").value
             };
 
-            console.log("UPDATE DATA :", data);
+            //console.log("UPDATE DATA :", data);
 
             const res = await AdminModel.updateAdmin(token, id_admin, data);
 
@@ -709,7 +686,7 @@ export default class AdminController {
                 inputType.value = type;
                 inputFile.value = "";
 
-                console.log("Module sélectionné :", type);
+                // console.log("Module sélectionné :", type);
 
             });
 
@@ -786,7 +763,7 @@ export default class AdminController {
 
             } catch (error) {
 
-                console.error("Erreur import liste :", error);
+                // console.error("Erreur import liste :", error);
 
                 Swal.fire(
                     "Erreur",

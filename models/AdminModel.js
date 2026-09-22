@@ -29,8 +29,6 @@ export default class AdminModel {
             body: JSON.stringify(data)
         });
 
-        console.log("BODY FETCH :", JSON.stringify(data));
-
         const result = await res.json();
 
         return {
@@ -66,8 +64,6 @@ export default class AdminModel {
         const url =
             `${API_URL}/admin/get-all-admin?${query.toString()}`;
 
-        console.log("🔵 URL API ADMINS :", url);
-
         const res = await fetch(url, {
             method: "GET",
             headers: {
@@ -75,17 +71,7 @@ export default class AdminModel {
             }
         });
 
-        console.log(
-            "🟢 API ADMINS HTTP :",
-            res.status
-        );
-
         const result = await res.json();
-
-        console.log(
-            "🟢 RESULTAT API ADMINS :",
-            result
-        );
 
         return {
             ok: res.ok,
@@ -180,12 +166,12 @@ export default class AdminModel {
         formData.append("type", type);
         formData.append("file", file);
 
-        console.log("IMPORT EXCEL :", {
-            type,
-            fichier: file.name,
-            format: file.type,
-            taille: file.size
-        });
+        // console.log("IMPORT EXCEL :", {
+        //     type,
+        //     fichier: file.name,
+        //     format: file.type,
+        //     taille: file.size
+        // });
 
         const res = await fetch(`${API_URL}/create-client`, {
             method: "POST",
@@ -197,7 +183,7 @@ export default class AdminModel {
 
         const result = await res.json();
 
-        console.log("RÉPONSE IMPORT :", result);
+      //  console.log("RÉPONSE IMPORT :", result);
 
         return {
             ok: res.ok,

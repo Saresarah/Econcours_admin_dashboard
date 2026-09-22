@@ -54,8 +54,7 @@ export default class CentreController {
         const token = AdminController.getToken();
 
         if (!token) {
-            console.warn("Aucun token admin");
-
+            window.location.href = "../login.php";
             return {
                 draw: params?.draw ?? 0,
                 recordsTotal: 0,
@@ -69,7 +68,7 @@ export default class CentreController {
             params
         );
 
-        console.log("RÉPONSE API CENTRES :", res);
+       // console.log("RÉPONSE API CENTRES :", res);
 
         if (!res.ok) {
 
@@ -92,7 +91,7 @@ export default class CentreController {
 
     static async initDataTable() {
 
-        console.log("INIT DATATABLE CENTRES");
+       // console.log("INIT DATATABLE CENTRES");
 
         const tbody = document.getElementById("centreTableBody");
 
@@ -427,6 +426,7 @@ export default class CentreController {
                 title: "Session expirée",
                 text: "Veuillez vous reconnecter."
             });
+            window.location.href = "../login.php";
 
             return;
         }

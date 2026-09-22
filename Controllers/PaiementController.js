@@ -11,9 +11,7 @@ export default class PaiementController {
 
         if (!token) {
 
-            console.warn(
-                "Aucun token administrateur"
-            );
+           window.location.href = "../login.php";
 
             return {
                 draw: params?.draw ?? 0,
@@ -29,10 +27,10 @@ export default class PaiementController {
                 params
             );
 
-        console.log(
-            "RÉPONSE API PAIEMENTS :",
-            res
-        );
+        // console.log(
+        //     "RÉPONSE API PAIEMENTS :",
+        //     res
+        // );
 
         if (!res.ok) {
 
@@ -65,9 +63,9 @@ export default class PaiementController {
 
         if ($.fn.DataTable.isDataTable("#paiementTable")) {
 
-            console.log(
-                "DataTable paiements déjà initialisé"
-            );
+            // console.log(
+            //     "DataTable paiements déjà initialisé"
+            // );
 
             return;
         }
@@ -97,7 +95,6 @@ export default class PaiementController {
 
             ajax: async function (data, callback) {
 
-
                 try {
 
                     const params = {
@@ -119,9 +116,7 @@ export default class PaiementController {
                     };
 
                     const result =
-                        await PaiementController.getAll(
-                            params
-                        );
+                        await PaiementController.getAll(params);
 
                     const paiements =
                         Array.isArray(result?.data)
@@ -133,13 +128,118 @@ export default class PaiementController {
                             (item, index) => {
 
                                 const candidat =
-                                    item.inscription?.candidat || {};
+                                    item.candidat || {};
 
-                                const concours =
-                                    item.inscription?.concours || {};
+                                const listePaiements =
+                                    Array.isArray(item.paiements)
+                                        ? item.paiements
+                                        : [];
 
-                                const montant =
-                                    Number(item.montant || 0);
+                                const totalMontant =
+                                    listePaiements.reduce(
+                                        (total, paiement) => {
+
+                                            return total +
+                                                Number(
+                                                    paiement.montant || 0
+                                                );
+
+                                        },
+                                        0
+                                    );
+
+                                const concoursUniques =
+                                    [
+                                        ...new Map(
+                                            listePaiements
+                                                .map(
+                                                    paiement =>
+                                                        paiement.inscription?.concours
+                                                )
+                                                .filter(Boolean)
+                                                .map(
+                                                    concours => [
+                                                        concours.id_concours,
+                                                        concours
+                                                    ]
+                                                )
+                                        ).values()
+                                    ];
+
+                                const concoursHTML =
+                                    concoursUniques
+                                        .slice(0, 2)
+                                        .map(
+                                            concours => `
+                                    <div>
+                                        <strong>
+                                            ${concours.nom || "-"}
+                                        </strong>
+
+                                        ${concours.annee
+                                                    ? `
+                                                    <small class="text-muted">
+                                                        (${concours.annee})
+                                                    </small>
+                                                `
+                                                    : ""
+                                                }
+                                    </div>
+                                `
+                                        )
+                                        .join("");
+
+                                const autresConcours =
+                                    concoursUniques.length > 2
+                                        ? `
+                                <span class="badge badge-info">
+                                    +${concoursUniques.length - 2} autres
+                                </span>
+                            `
+                                        : "";
+
+                                const modesPaiement =
+                                    [
+                                        ...new Set(
+                                            listePaiements
+                                                .map(
+                                                    paiement =>
+                                                        paiement.mode_paiement
+                                                )
+                                                .filter(Boolean)
+                                        )
+                                    ].join(", ");
+
+                                const statutsPaiement =
+                                    [
+                                        ...new Set(
+                                            listePaiements
+                                                .map(
+                                                    paiement =>
+                                                        paiement.statut_paiement
+                                                )
+                                                .filter(Boolean)
+                                        )
+                                    ].join(", ");
+
+                                const dernierPaiement =
+                                    listePaiements.length > 0
+                                        ? listePaiements
+                                            .map(
+                                                paiement =>
+                                                    paiement.date_paiement
+                                            )
+                                            .filter(Boolean)
+                                            .sort()
+                                            .reverse()[0]
+                                        : null;
+
+                                const datePaiement =
+                                    dernierPaiement
+                                        ? new Date(
+                                            dernierPaiement
+                                        ).toLocaleDateString("fr-FR")
+                                        : "-";
 
                                 return [
 
@@ -148,40 +248,51 @@ export default class PaiementController {
                                     1,
 
                                     `
+                            <strong>
                                 ${candidat.nom || ""}
                                 ${candidat.prenom || ""}
-                                `,
+                            </strong>
+
+                            ${candidat.email
+                                        ? `
+                                        <br>
+                                        <small class="text-muted">
+                                            ${candidat.email}
+                                        </small>
+                                    `
+                                        : ""
+                                    }
+                        `,
 
                                     `
-                                ${concours.nom || "-"}
-                                ${concours.annee
-                                        ? `(${concours.annee})`
-                                        : ""}
-                                `,
+                            ${concoursHTML || "-"}
+
+                            ${autresConcours}
+                        `,
 
                                     `
-                                <strong>
-                                    ${montant.toLocaleString("fr-FR")}
-                                    FCFA
-                                </strong>
-                                `,
+                            <strong>
+                                ${totalMontant.toLocaleString("fr-FR")}
+                                FCFA
+                            </strong>
+                        `,
 
-                                    item.mode_paiement || "-",
+                                    modesPaiement || "-",
 
-                                    item.statut_paiement || "-",
+                                    statutsPaiement || "-",
 
-                                    item.date_paiement
-                                        ? item.date_paiement
-                                            .split("T")[0]
-                                        : "-",
+                                    datePaiement,
 
                                     `
-                                <button
-                                    class="btn btn-info btn-sm btn-detail-paiement"
-                                    data-id="${candidat.id_candidat}">
-                                    <i class="fa fa-eye"></i>
-                                </button>
-                                `
+                            <button
+                                type="button"
+                                class="btn btn-info btn-sm btn-detail-paiement"
+                                data-id="${candidat.id_candidat}"
+                                title="Voir les paiements"
+                            >
+                                <i class="fa fa-eye"></i>
+                            </button>
+                        `
                                 ];
                             }
                         );
@@ -200,6 +311,11 @@ export default class PaiementController {
                     });
 
                 } catch (error) {
+
+                    console.error(
+                        "Erreur chargement paiements :",
+                        error
+                    );
 
                     callback({
 
@@ -234,7 +350,7 @@ export default class PaiementController {
                 },
 
                 {
-                    title: "Montant",
+                    title: "Montant total",
                     className: "text-center"
                 },
 
@@ -317,20 +433,20 @@ export default class PaiementController {
 
             if (!btn) return;
 
-            console.log("CLICK DETECTÉ :", btn.dataset.id);
+           // console.log("CLICK DETECTÉ :", btn.dataset.id);
 
             await PaiementController.showPaiementDetail(btn.dataset.id);
         });
     }
     static currentPaiement = null;
     static async showPaiementDetail(idCandidat) {
-        console.log("ID candidat :", idCandidat);
+       // console.log("ID candidat :", idCandidat);
 
         const token = AdminController.getToken();
 
         const res = await PaiementModel.getPaiementDetail(token, idCandidat);
 
-        console.log("Réponse API :", res);
+       // console.log("Réponse API :", res);
 
         if (!res.ok) {
             Swal.fire("Erreur", "Impossible de charger les paiements", "error");
@@ -339,7 +455,7 @@ export default class PaiementController {
 
         const paiements = res.data.data;
 
-        console.log("Paiements :", paiements);
+       // console.log("Paiements :", paiements);
 
         if (!paiements || paiements.length === 0) {
             Swal.fire("Info", "Aucun paiement trouvé", "info");
@@ -410,11 +526,11 @@ export default class PaiementController {
 
         document.getElementById("detailPaiementContent").innerHTML = html;
 
-        console.log("Avant ouverture modal");
+      //  console.log("Avant ouverture modal");
 
         $("#detailPaiementModal").modal("show");
 
-        console.log("Après ouverture modal");
+      //  console.log("Après ouverture modal");
     }
 
     static initPaiementStatusInlineEdit() {
@@ -491,6 +607,8 @@ export default class PaiementController {
                 title: "Session expirée",
                 text: "Veuillez vous reconnecter."
             });
+
+            window.location.href = "../login.php";
 
             return;
         }

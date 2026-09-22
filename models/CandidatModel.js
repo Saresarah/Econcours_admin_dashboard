@@ -26,7 +26,7 @@ export default class CandidatModel {
 
         const result = await res.json();
 
-        console.log("RESULT API CANDIDATS :", result);
+      //  console.log("RESULT API CANDIDATS :", result);
 
         return {
             ok: res.ok,
@@ -64,10 +64,10 @@ export default class CandidatModel {
 
             const result = await res.json();
 
-            console.log(
-                "RESULT API CANDIDATS PAGE :",
-                result
-            );
+            // console.log(
+            //     "RESULT API CANDIDATS PAGE :",
+            //     result
+            // );
 
             if (!res.ok) {
                 return {
@@ -92,10 +92,10 @@ export default class CandidatModel {
 
         } while (allCandidats.length < total);
 
-        console.log(
-            "TOUS LES CANDIDATS POUR SELECT :",
-            allCandidats
-        );
+        // console.log(
+        //     "TOUS LES CANDIDATS POUR SELECT :",
+        //     allCandidats
+        // );
 
         return {
             ok: true,

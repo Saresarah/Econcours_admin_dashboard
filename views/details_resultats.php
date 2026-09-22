@@ -94,12 +94,12 @@
                                                 Liste des candidats
                                             </h3>
 
-                                            <p
+                                            <!-- <p
                                                 class="text-muted mb-0"
                                                 id="nomConcours"
                                             >
                                                 Chargement du concours...
-                                            </p>
+                                            </p> -->
                                         </div>
 
                                     </div>

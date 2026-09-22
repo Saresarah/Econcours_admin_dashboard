@@ -4,7 +4,7 @@
     <a class="sidebar-brand d-flex align-items-center justify-content-center" href="#">
        
         <div class="logo">
-            <img src="../pages/assets/image/armoiries-1.png" alt="logo" height="40">
+            <img src="../pages/assets/image/armoirie.jpg" alt="logo" height="50">
            <div style="margin-top: 6px;">E-CONCOURS</div>
         </div>
     </a>

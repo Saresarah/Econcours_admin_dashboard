@@ -34,48 +34,10 @@ export default class PaiementModel {
             orderDir: params.orderDir ?? "desc"
         });
 
-        if (params.statut_paiement) {
-            query.append(
-                "statut_paiement",
-                params.statut_paiement
-            );
-        }
-
-        if (params.mode_paiement) {
-            query.append(
-                "mode_paiement",
-                params.mode_paiement
-            );
-        }
-
-        if (params.annee_concours) {
-            query.append(
-                "annee_concours",
-                params.annee_concours
-            );
-        }
-
-        if (params.nom_candidat) {
-            query.append(
-                "nom_candidat",
-                params.nom_candidat
-            );
-        }
-
-        if (params.prenom_candidat) {
-            query.append(
-                "prenom_candidat",
-                params.prenom_candidat
-            );
-        }
-
+       
         const url =
             `http://localhost:4000/api/admin/paiements?${query.toString()}`;
 
-        console.log(
-            "🔵 URL API PAIEMENTS :",
-            url
-        );
 
         const res = await fetch(
             url,
@@ -88,6 +50,8 @@ export default class PaiementModel {
         );
 
         const data = await res.json();
+
+      //  console.log("RESULTAT API PAIEMENTS :", data);
 
         return {
             ok: res.ok,

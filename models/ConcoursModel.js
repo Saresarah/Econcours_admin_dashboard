@@ -25,7 +25,7 @@ export default class ConcoursModel {
 
         const result = await res.json();
 
-        console.log("RESULT API CONCOURS :", result);
+       // console.log("RESULT API CONCOURS :", result);
 
         return {
             ok: res.ok,
@@ -63,10 +63,10 @@ export default class ConcoursModel {
 
             const result = await res.json();
 
-            console.log(
-                "RESULT API CONCOURS PAGE :",
-                result
-            );
+            // console.log(
+            //     "RESULT API CONCOURS PAGE :",
+            //     result
+            // );
 
             if (!res.ok) {
                 return {
@@ -91,10 +91,10 @@ export default class ConcoursModel {
 
         } while (allConcours.length < total);
 
-        console.log(
-            "TOUS LES CONCOURS POUR SELECT :",
-            allConcours
-        );
+        // console.log(
+        //     "TOUS LES CONCOURS POUR SELECT :",
+        //     allConcours
+        // );
 
         return {
             ok: true,

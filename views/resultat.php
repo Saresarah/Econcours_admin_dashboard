@@ -99,15 +99,7 @@
                                             </tr>
                                         </thead>
                                         <tfoot>
-                                            <tr>
-                                                <th class="text-center">N°</th>
-                                                <th class="text-center">Concours</th>
-                                                <!-- <th class="text-center">Date de composition</th> -->
-                                                <!-- <th class="text-center">Note</th>
-                                                <th class="text-center">Moyenne générale</th>
-                                                <th class="text-center">Modifier</th> -->
-                                                <th class="text-center">Afficher</th>
-                                            </tr>
+                                        
                                         </tfoot>
 
                                         <tbody>

@@ -16,7 +16,7 @@ export default class ConcoursController {
 
         if (!token) {
 
-            console.warn("Aucun token admin");
+            window.location.href = "../login.php";
 
             return {
                 draw: params?.draw ?? 0,
@@ -31,7 +31,7 @@ export default class ConcoursController {
             params
         );
 
-        console.log("RÉPONSE API CONCOURS :", res);
+       // console.log("RÉPONSE API CONCOURS :", res);
 
         if (!res.ok) {
 
@@ -58,7 +58,7 @@ export default class ConcoursController {
     // =========================================
     static async initDataTable() {
 
-        console.log("INIT DATATABLE CONCOURS");
+       // console.log("INIT DATATABLE CONCOURS");
 
         const tbody = document.getElementById("concoursTableBody");
 
@@ -110,10 +110,10 @@ export default class ConcoursController {
                             data.order?.[0]?.dir ?? "asc"
                     };
 
-                    console.log(
-                        "PARAMÈTRES DATATABLES CONCOURS :",
-                        params
-                    );
+                    // console.log(
+                    //     "PARAMÈTRES DATATABLES CONCOURS :",
+                    //     params
+                    // );
 
                     const result =
                         await ConcoursController.getAll(params);
@@ -507,7 +507,7 @@ export default class ConcoursController {
                 const id = btnExamen.dataset.id;
                 const nom = btnExamen.dataset.nom;
 
-                console.log("Bouton examens cliqué :", id, nom);
+               // console.log("Bouton examens cliqué :", id, nom);
 
                 await this.afficherExamens(id, nom);
 
@@ -526,7 +526,7 @@ export default class ConcoursController {
                 const id = btnCandidats.dataset.id;
                 const nom = btnCandidats.dataset.nom;
 
-                console.log("Bouton candidats cliqué :", id, nom);
+               // console.log("Bouton candidats cliqué :", id, nom);
 
                 const token = AdminController.getToken();
 
@@ -536,14 +536,17 @@ export default class ConcoursController {
                 );
 
                 if (!res.ok) {
-                    Alert.error(
-                        res.data?.error ||
-                        "Impossible de charger les candidats"
-                    );
+                     Swal.fire({
+                icon: "error",
+                title: "Erreur",
+                text: res.data?.error ||
+                    "Impossible de charger les candidats"
+            });
+
                     return;
                 }
 
-                console.log("Candidats :", res.data);
+              //  console.log("Candidats :", res.data);
 
                 this.afficherModalCandidats(
                     nom,
@@ -683,13 +686,13 @@ export default class ConcoursController {
         form.addEventListener("submit", async (e) => {
 
             e.preventDefault();
-            console.log("SUBMIT UPDATE DECLENCHE");
+          //  console.log("SUBMIT UPDATE DECLENCHE");
 
             const token = AdminController.getToken();
 
             const id = document.getElementById("id_concours_modif").value;
 
-            console.log("ID :", id);
+           // console.log("ID :", id);
 
             const data = {
                 nom: document.getElementById("nom_modif").value,
@@ -702,9 +705,9 @@ export default class ConcoursController {
                 date_fin: document.getElementById("date_fin_modif").value,
                 statut_concours: document.getElementById("statut_concours_modif").value,
             };
-            console.log("DATA :", data);
+           // console.log("DATA :", data);
             const res = await ConcoursModel.updateConcours(id, token, data);
-            console.log("REPONSE UPDATE :", res);
+           // console.log("REPONSE UPDATE :", res);
             if (!res.ok) {
 
                 Swal.fire(
@@ -784,7 +787,7 @@ export default class ConcoursController {
                 token
             );
 
-            console.log("ERREUR BACK :", res.data);
+          //  console.log("ERREUR BACK :", res.data);
 
             if (!res.ok) {
 
@@ -967,6 +970,8 @@ export default class ConcoursController {
                 title: "Session expirée",
                 text: "Veuillez vous reconnecter."
             });
+
+            window.location.href = "../login.php";
 
             return;
         }

@@ -25,7 +25,7 @@ export default class CategorieModel {
 
         const result = await res.json();
 
-        console.log("RESULT API CATEGORIES :", result);
+       // console.log("RESULT API CATEGORIES :", result);
 
         return {
             ok: res.ok,
@@ -66,10 +66,10 @@ export default class CategorieModel {
 
             const result = await res.json();
 
-            console.log(
-                "RESULT API CATEGORIES PAGE :",
-                result
-            );
+            // console.log(
+            //     "RESULT API CATEGORIES PAGE :",
+            //     result
+            // );
 
             if (!res.ok) {
 
@@ -93,10 +93,10 @@ export default class CategorieModel {
 
         } while (allCategories.length < total);
 
-        console.log(
-            "TOUTES LES CATEGORIES POUR SELECT :",
-            allCategories
-        );
+        // console.log(
+        //     "TOUTES LES CATEGORIES POUR SELECT :",
+        //     allCategories
+        // );
 
         return {
             ok: true,
@@ -170,7 +170,8 @@ export default class CategorieModel {
         );
 
         const result = await res.json();
-        console.log("RESULT API CATEGORIES :", result);
+        
+        // console.log("RESULT API CATEGORIES :", result);
 
         return {
             ok: res.ok,
