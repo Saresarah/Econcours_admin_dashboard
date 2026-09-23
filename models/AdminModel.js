@@ -140,10 +140,10 @@ export default class AdminModel {
         };
     }
 
-    static async getProfile(token, id_admin) {
+    static async getProfile(token) {
 
         const res = await fetch(
-            `${API_URL}/admin/profile/${id_admin}`,
+            `${API_URL}/admin/profile/${token}`,
             {
                 headers: {
                     Authorization: `Bearer ${token}`

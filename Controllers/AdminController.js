@@ -120,29 +120,35 @@ export default class AdminController {
 
             if (!res.ok) {
                 errorEl.style.display = "block";
-                errorEl.textContent = res.data.error || "Erreur connexion";
+                errorEl.textContent =
+                    res.data.error || "Erreur connexion";
+
                 return false;
             }
 
-
-            // SUCCESS
-            localStorage.setItem("admin_token", res.data.token);
+            //const admin = res.data.admin;
 
             localStorage.setItem(
-                "admin",
-                JSON.stringify(res.data.admin)
+                "admin_token",
+                res.data.token
             );
 
+            // localStorage.setItem(
+            //     "admin",
+            //     JSON.stringify(admin)
+            // );
 
+            // localStorage.setItem(
+            //     "id_admin",
+            //     admin.id_admin
+            // );
 
             window.location.href = "views/dashboard.php";
-
-
 
             return true;
 
         } catch (err) {
-            //console.log(err);
+            console.error("Erreur login :", err);
 
             errorEl.style.display = "block";
             errorEl.textContent = "Erreur serveur";
@@ -332,9 +338,9 @@ export default class AdminController {
                         data: rows
                     });
 
-                } catch (error) {      
-                      console.log (error);
-                    
+                } catch (error) {
+                    console.log(error);
+
                     callback({
                         draw: data.draw,
                         recordsTotal: 0,
@@ -615,16 +621,16 @@ export default class AdminController {
 
         const token = this.getToken();
 
-        const id_admin = localStorage.getItem("id_admin");
+        // const id_admin = localStorage.getItem("id_admin");
 
-        if (!id_admin) {
+        if (!token) {
             Swal.fire("Erreur", "Administrateur introuvable", "error");
             return;
         }
 
         const res = await AdminModel.getProfile(
             token,
-            id_admin
+           // id_admin
         );
 
         if (!res.ok) {

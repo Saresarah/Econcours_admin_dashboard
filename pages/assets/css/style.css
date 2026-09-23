@@ -70,7 +70,7 @@
   align-items: center;
   justify-content: center;
   padding: 50px 42px;
-  background: #0756A3;
+  background: #03572A;
   color: #FFFFFF;
   text-align: center;
   box-sizing: border-box;
@@ -199,14 +199,14 @@
   background: #EAF3FB;
   border-radius: 10px;
 
-  color: #0756A3;
+  color: #03572A;
   font-size: 19px;
 }
 
 .admin-login-eyebrow {
   margin: 0 0 5px;
 
-  color: #0756A3;
+  color: #03572A;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -278,7 +278,7 @@
 
 .admin-input-wrapper:focus-within {
   background: #FFFFFF;
-  border-color: #0756A3;
+  border-color: #03572A;
   box-shadow: 0 0 0 3px rgba(7, 86, 163, 0.09);
 }
 
@@ -338,7 +338,7 @@
 }
 
 .admin-toggle-password:hover {
-  color: #0756A3;
+  color: #03572A;
 }
 
 
@@ -378,8 +378,8 @@
   margin-top: 2px;
   padding: 0 20px;
 
-  background: #0756A3;
-  border: 1px solid #0756A3;
+  background: #03572A;
+  border: 1px solid #03572A;
   border-radius: 8px;
 
   color: #FFFFFF;
@@ -844,7 +844,7 @@ body {
 .admin-profile-eyebrow {
     margin: 0 0 5px;
 
-    color: #0756A3;
+    color: #03572A;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 1px;
@@ -878,7 +878,7 @@ body {
     background: #EAF3FB;
     border-radius: 10px;
 
-    color: #0756A3;
+    color: #03572A;
     font-size: 19px;
 }
 
@@ -914,7 +914,7 @@ body {
 
     padding: 30px 35px;
 
-    background: #0756A3;
+    background: #03572A;
 
     box-sizing: border-box;
 }
@@ -937,7 +937,7 @@ body {
     border: 4px solid rgba(255, 255, 255, 0.22);
     border-radius: 50%;
 
-    color: #0756A3;
+    color: #03572A;
 
     font-size: 25px;
     font-weight: 800;
@@ -1019,7 +1019,7 @@ body {
     background: #EAF3FB;
     border-radius: 8px;
 
-    color: #0756A3;
+    color: #03572A;
     font-size: 15px;
 }
 
@@ -1093,7 +1093,7 @@ body {
 
     border-radius: 7px;
 
-    color: #0756A3;
+    color: #03572A;
 
     font-size: 13px;
 }

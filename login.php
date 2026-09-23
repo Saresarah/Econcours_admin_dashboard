@@ -22,8 +22,8 @@
             <section class="admin-login-brand">
 
                 <div class="admin-login-logo">
-                    <img src="pages/assets/image/armoirie.jpg"
-                        alt="Armoiries du Mali">
+                    <img src="pages/assets/image/armoiries-1.png"
+                        alt="Armoiries du Burkina">
                 </div>
 
                 <div class="admin-login-brand-text">
